@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gubka — Соцсеть</title>
+    <style>
+        :root {
+            --bg: #000000;
+            --card: #16181c;
+            --border: #2f3336;
+            --text: #e7e9ea;
+            --muted: #71767b;
+            --accent: #f7b500;
+            --accent-hover: #d99f00;
+            --danger: #f4212e;
+            --repost: #00ba7c;
+            --like: #f91880;
+            --font-size: 15px;
+        }
+        body.theme-dim {
+            --bg: #15202b;
+            --card: #1e2732;
+            --border: #38444d;
+            --text: #f7f9f9;
+            --muted: #8b98a5;
+        }
+        body.theme-light {
+            --bg: #ffffff;
+            --card: #f7f9f9;
+            --border: #eff3f4;
+            --text: #0f1419;
+            --muted: #536471;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; font-size: var(--font-size); transition: background 0.2s, color 0.2s; }
+        
+        /* Полноэкранный экран входа и регистрации */
+        .auth-screen {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            overflow-y: auto;
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .auth-logo {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--accent);
+            text-align: center;
+            margin-bottom: 4px;
+        }
+        .auth-subtitle {
+            text-align: center;
+            color: var(--muted);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .auth-hint {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: -8px;
+        }
+
+        /* Основной контейнер приложения */
+        .app-container {
+            width: 100%;
+            max-width: 600px;
+            border-left: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            min-height: 100vh;
+            padding-bottom: 70px;
+            display: none;
+        }
+
+        /* Шапка */
+        header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: var(--bg);
+            opacity: 0.96;
+            z-index: 100;
+        }
+        .logo { font-size: 21px; font-weight: 900; color: var(--accent); cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .header-actions { display: flex; gap: 8px; align-items: center; }
+
+        /* Вкладки навигации */
+        .tabs { display: flex; border-bottom: 1px solid var(--border); }
+        .tab { flex: 1; text-align: center; padding: 14px 0; font-weight: 700; color: var(--muted); cursor: pointer; position: relative; }
+        .tab.active { color: var(--text); }
+        .tab.active::after { content: ''; position: absolute; bottom: 0; left: 25%; width: 50%; height: 4px; background: var(--accent); border-radius: 4px; }
+
+        /* Элементы форм */
+        button { background: var(--accent); color: #000; border: none; padding: 10px 18px; border-radius: 24px; font-weight: 700; font-size: 15px; cursor: pointer; transition: 0.15s; }
+        button:active { transform: scale(0.98); }
+        button.outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+        button.danger { background: var(--danger); color: #fff; }
+        button.small { padding: 6px 12px; font-size: 13px; }
+        
+        input, textarea, select {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 12px 14px;
+            border-radius: 12px;
+            font-size: 15px;
+            outline: none;
+        }
+        input:focus, textarea:focus { border-color: var(--accent); }
+        .error-msg { color: var(--danger); font-size: 13px; display: none; text-align: center; font-weight: 600; }
+
+        /* Аватарки */
+        .avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: #000;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar.large { width: 72px; height: 72px; font-size: 28px; }
+
+        /* Создание поста */
+        .post-creator { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; gap: 12px; }
+        .creator-body { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        .creator-body textarea { border: none; background: transparent; padding: 4px 0; resize: none; min-height: 65px; font-size: var(--font-size); }
+        .creator-tools { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 10px; }
+        .tool-btn { color: var(--accent); font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        #imagePreview { max-width: 100%; max-height: 220px; border-radius: 12px; display: none; object-fit: cover; }
+
+        /* Посты */
+        .post { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
+        .repost-badge { font-size: 12px; color: var(--muted); font-weight: 700; margin-left: 34px; display: flex; align-items: center; gap: 6px; }
+        .post-main { display: flex; gap: 12px; }
+        .post-content { flex: 1; min-width: 0; }
+        .post-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .post-author-info { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+        .post-name { font-weight: 700; cursor: pointer; }
+        .post-name:hover { text-decoration: underline; }
+        .verified-badge { color: var(--accent); font-size: 14px; }
+        .post-handle, .post-time { color: var(--muted); font-size: 13px; }
+        .post-text { margin-top: 4px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
+        .post-img { max-width: 100%; border-radius: 14px; margin-top: 10px; border: 1px solid var(--border); }
+        
+        /* Действия под постом */
+        .post-actions { display: flex; justify-content: space-between; max-width: 400px; margin-top: 10px; color: var(--muted); font-size: 14px; }
+        .act-btn { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 4px 8px; border-radius: 16px; transition: 0.15s; user-select: none; }
+        .act-btn.liked { color: var(--like); font-weight: 700; }
+        .act-btn.reposted { color: var(--repost); font-weight: 700; }
+        .del-btn { color: var(--muted); cursor: pointer; font-size: 13px; padding: 2px 6px; }
+        .del-btn:hover { color: var(--danger); }
+
+        /* Комментарии */
+        .comments-box { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); display: none; flex-direction: column; gap: 8px; }
+        .comment-item { background: var(--card); padding: 8px 12px; border-radius: 10px; font-size: 13px; }
+        .comment-head { display: flex; gap: 6px; margin-bottom: 2px; }
+        .comment-name { font-weight: 700; }
+        .comment-handle { color: var(--muted); }
+        .comment-form { display: flex; gap: 8px; margin-top: 4px; }
+        .comment-form input { padding: 8px 12px; font-size: 13px; }
+
+        /* Профиль */
+        .profile-view { display: none; padding: 20px 16px; border-bottom: 1px solid var(--border); background: var(--card); }
+        .profile-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .profile-title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+        .profile-sub { color: var(--muted); font-size: 14px; }
+        .profile-bio { margin: 10px 0; line-height: 1.4; }
+        .profile-stats { display: flex; gap: 16px; font-size: 14px; color: var(--muted); margin-top: 10px; }
+        .profile-stats strong { color: var(--text); }
+
+        /* Настройки */
+        .settings-view { display: none; padding: 20px 16px; flex-direction: column; gap: 20px; }
+        .settings-group { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .settings-group h3 { font-size: 16px; margin-bottom: 4px; color: var(--accent); }
+        .color-swatches { display: flex; gap: 12px; flex-wrap: wrap; }
+        .swatch { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+        .swatch.active { border-color: var(--text); transform: scale(1.1); }
+        .setting-row { display: flex; justify-content: space-between; align-items: center; }
+    </style>
+</head>
+<body>
+
+<!-- ПОЛНОЭКРАННОЕ ОКНО РЕГИСТРАЦИИ И ВХОДА -->
+<div class="auth-screen" id="authScreen">
+    <div class="auth-card">
+        <div class="auth-logo">🧽 Gubka</div>
+        <div class="auth-subtitle" id="authSubtitle">Войдите, чтобы читать и публиковать посты</div>
+        
+        <input type="text" id="authNameInput" placeholder="Имя (только буквы)" style="display: none;">
+        <div class="auth-hint" id="nameHint" style="display: none;">Только русские или английские буквы, без пробелов и смайликов</div>
+        
+        <input type="text" id="authHandleInput" placeholder="Никнейм / юзернейм (только буквы)">
+        <div class="auth-hint">Только буквы (A-Z, А-Я), без пробелов, цифр и смайликов</div>
+        
+        <input type="password" id="authPassInput" placeholder="Пароль">
+        
+        <div class="error-msg" id="authError"></div>
+        
+        <button id="authSubmitBtn" onclick="handleAuth()">Войти</button>
+        <button class="outline" id="authToggleBtn" onclick="toggleAuthMode()">Создать аккаунт</button>
+    </div>
+</div>
+
+<!-- ОСНОВНОЙ ИНТЕРФЕЙС (ДОСТУПЕН ТОЛЬКО ПОСЛЕ ВХОДА) -->
+<div class="app-container" id="appContainer">
+    <header>
+        <div class="logo" onclick="switchTab('feed')">🧽 Gubka</div>
+        <div class="header-actions">
+            <button class="outline small" onclick="openProfile(currentUser.handle)">Профиль</button>
+            <button class="outline small" onclick="switchTab('settings')">⚙️</button>
+        </div>
+    </header>
+
+    <div class="tabs" id="mainTabs">
+        <div class="tab active" id="tab-feed" onclick="switchTab('feed')">Главная</div>
+        <div class="tab" id="tab-reposts" onclick="switchTab('reposts')">Репосты</div>
+    </div>
+
+    <!-- Профиль пользователя -->
+    <div class="profile-view" id="profileView">
+        <div class="profile-header">
+            <div class="avatar large" id="profAvatar"></div>
+            <div style="display: flex; gap: 8px;">
+                <button class="outline small" id="profEditBtn" onclick="switchTab('settings')">Настроить</button>
+                <button class="outline small" onclick="switchTab('feed')">Назад</button>
+            </div>
+        </div>
+        <div class="profile-title" id="profName"></div>
+        <div class="profile-sub" id="profHandle"></div>
+        <div class="profile-bio" id="profBio"></div>
+        <div class="profile-stats">
+            <span><strong id="profPostsCount">0</strong> постов</span>
+            <span><strong id="profRepostsCount">0</strong> репостов</span>
+        </div>
+    </div>
+
+    <!-- Создание поста -->
+    <div class="post-creator" id="postCreator">
+        <div class="avatar" id="creatorAvatar" onclick="openProfile(currentUser.handle)"></div>
+        <div class="creator-body">
+            <textarea id="postText" placeholder="Что нового впитал сегодня?"></textarea>
+            <img id="imagePreview" alt="Фото">
+            <div class="creator-tools">
+                <label class="tool-btn">
+                    📷 Добавить фото
+                    <input type="file" id="postImageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                </label>
+                <button class="small" onclick="publishPost()">Опубликовать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Лента -->
+    <div id="feedContainer"></div>
+
+    <!-- Настройки -->
+    <div class="settings-view" id="settingsView">
+        <div class="settings-group">
+            <h3>Редактирование профиля</h3>
+            <label style="font-size: 13px; color: var(--muted);">Имя (только буквы, без пробелов и смайлов)</label>
+            <input type="text" id="setNameInput" placeholder="Имя">
+            
+            <label style="font-size: 13px; color: var(--muted);">О себе (био)</label>
+            <textarea id="setBioInput" rows="2" placeholder="Расскажите о себе..."></textarea>
+            
+            <label class="tool-btn" style="margin-top: 4px;">
+                🖼️ Загрузить новую аватарку
+                <input type="file" accept="image/*" style="display: none;" onchange="handleAvatarUpload(event)">
+            </label>
+
+            <div class="setting-row" style="margin-top: 6px;">
+                <span>Галочка верификации (✓)</span>
+                <input type="checkbox" id="setVerifiedInput" style="width: 20px; height: 20px;">
+            </div>
+            
+            <button onclick="saveProfileSettings()">Сохранить профиль</button>
+        </div>
+
+        <div class="settings-group">
+            <h3>Внешний вид</h3>
+            <label style="font-size: 13px; color: var(--muted);">Тема оформления</label>
+            <select id="setThemeSelect" onchange="changeTheme(this.value)">
+                <option value="dark">Тёмная (Чёрная)</option>
+                <option value="dim">Сумерки (Тёмно-синяя)</option>
+                <option value="light">Светлая</option>
+            </select>
+
+            <label style="font-size: 13px; color: var(--muted);">Акцентный цвет</label>
+            <div class="color-swatches" id="colorSwatches">
+                <div class="swatch" style="background: #f7b500;" onclick="changeAccent('#f7b500')"></div>
+                <div class="swatch" style="background: #1d9bf0;" onclick="changeAccent('#1d9bf0')"></div>
+                <div class="swatch" style="background: #f91880;" onclick="changeAccent('#f91880')"></div>
+                <div class="swatch" style="background: #00ba7c;" onclick="changeAccent('#00ba7c')"></div>
+                <div class="swatch" style="background: #7856ff;" onclick="changeAccent('#7856ff')"></div>
+            </div>
+
+            <label style="font-size: 13px; color: var(--muted);">Размер текста</label>
+            <select id="setFontSizeSelect" onchange="changeFontSize(this.value)">
+                <option value="13px">Мелкий</option>
+                <option value="15px" selected>Обычный</option>
+                <option value="17px">Крупный</option>
+            </select>
+        </div>
+
+        <div class="settings-group">
+            <h3>Безопасность и аккаунт</h3>
+            <input type="password" id="setNewPassInput" placeholder="Новый пароль">
+            <button class="outline" onclick="changePassword()">Обновить пароль</button>
+            <button class="danger" style="margin-top: 8px;" onclick="logout()">Выйти из аккаунта</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let isRegisterMode = false;
+    let currentTab = 'feed';
+    let viewingProfileHandle = null;
+    let pendingPostImage = null;
+
+    let users = JSON.parse(localStorage.getItem('gubka_v3_users')) || [
+        { name: 'Губка', handle: 'gubka', pass: 'admin', bio: 'Добро пожаловать в обновлённую соцсеть Gubka!', avatar: null, verified: true }
+    ];
+    let currentUser = JSON.parse(localStorage.getItem('gubka_v3_current')) || null;
+    let posts = JSON.parse(localStorage.getItem('gubka_v3_posts')) || [
+        {
+            id: 1,
+            authorHandle: 'gubka',
+            text: 'Привет! Теперь доступ к сайту открывается только после регистрации. В никах и именах разрешены исключительно буквы.',
+            image: null,
+            time: 'Сегодня',
+            likes: [],
+            reposts: [],
+            comments: []
+        }
+    ];
+    let appPrefs = JSON.parse(localStorage.getItem('gubka_v3_prefs')) || {
+        theme: 'dark',
+        accent: '#f7b500',
+        fontSize: '15px'
+    };
+
+    // Строгая фильтрация ввода: только русские и английские буквы (без пробелов, цифр и смайлов)
+    function onlyLettersFilter(inputEl) {
+        inputEl.addEventListener('input', function() {
+            this.value = this.value.replace(/[^a-zA-Zа-яА-ЯёЁ]/g, '');
+        });
+    }
+
+    onlyLettersFilter(document.getElementById('authNameInput'));
+    onlyLettersFilter(document.getElementById('authHandleInput'));
+    onlyLettersFilter(document.getElementById('setNameInput'));
+
+    function isValidLettersOnly(str) {
+        return /^[a-zA-Zа-яА-ЯёЁ]+$/.test(str);
+    }
+
+    function saveAll() {
+        localStorage.setItem('gubka_v3_users', JSON.stringify(users));
+        localStorage.setItem('gubka_v3_posts', JSON.stringify(posts));
+        localStorage.setItem('gubka_v3_prefs', JSON.stringify(appPrefs));
+        if (currentUser) {
+            localStorage.setItem('gubka_v3_current', JSON.stringify(currentUser));
+        } else {
+            localStorage.removeItem('gubka_v3_current');
+        }
+    }
+
+    function applyPrefs() {
+        document.body.className = appPrefs.theme === 'dark' ? '' : 'theme-' + appPrefs.theme;
+        document.documentElement.style.setProperty('--accent', appPrefs.accent);
+        document.documentElement.style.setProperty('--font-size', appPrefs.fontSize);
+        
+        document.getElementById('setThemeSelect').value = appPrefs.theme;
+        document.getElementById('setFontSizeSelect').value = appPrefs.fontSize;
+        
+        document.querySelectorAll('.swatch').forEach(s => {
+            s.classList.toggle('active', rgbToHex(s.style.backgroundColor) === appPrefs.accent.toLowerCase());
+        });
+    }
+
+    function rgbToHex(rgb) {
+        if (rgb.startsWith('#')) return rgb.toLowerCase();
+        const res = rgb.match(/\d+/g);
+        if (!res) return '';
+        return '#' + res.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
+    }
+
+    function changeTheme(val) {
+        appPrefs.theme = val;
+        saveAll();
+        applyPrefs();
+    }
+
+    function changeAccent(color) {
+        appPrefs.accent = color;
+        saveAll();
+        applyPrefs();
+    }
+
+    function changeFontSize(size) {
+        appPrefs.fontSize = size;
+        saveAll();
+        applyPrefs();
+    }
+
+    // Логика полноэкранной авторизации и регистрации
+    function toggleAuthMode() {
+        isRegisterMode = !isRegisterMode;
+        document.getElementById('authError').style.display = 'none';
+        document.getElementById('authNameInput').style.display = isRegisterMode ? 'block' : 'none';
+        document.getElementById('nameHint').style.display = isRegisterMode ? 'block' : 'none';
+        document.getElementById('authSubtitle').innerText = isRegisterMode 
+            ? 'Создайте аккаунт в Gubka' 
+            : 'Войдите, чтобы читать и публиковать посты';
+        document.getElementById('authSubmitBtn').innerText = isRegisterMode ? 'Зарегистрироваться' : 'Войти';
+        document.getElementById('authToggleBtn').innerText = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Создать аккаунт';
+    }
+
+    function showAuthError(msg) {
+        const err = document.getElementById('authError');
+        err.innerText = msg;
+        err.style.display = 'block';
+    }
+
+    function handleAuth() {
+        const nameVal = document.getElementById('authNameInput').value.trim();
+        const handleVal = document.getElementById('authHandleInput').value.trim().toLowerCase();
+        const passVal = document.getElementById('authPassInput').value.trim();
+
+        if (!handleVal || !passVal || (isRegisterMode && !nameVal)) {
+            return showAuthError('Заполните все поля.');
+        }
+
+        if (!isValidLettersOnly(handleVal)) {
+            return showAuthError('Никнейм должен содержать только буквы без пробелов и смайликов.');
+        }
+
+        if (isRegisterMode) {
+            if (!isValidLettersOnly(nameVal)) {
+                return showAuthError('Имя должно содержать только буквы без пробелов и смайликов.');
+            }
+            if (users.some(u => u.handle === handleVal)) {
+                return showAuthError('Этот никнейм уже занят.');
+            }
+            const newUser = {
+                name: nameVal,
+                handle: handleVal,
+                pass: passVal,
+                bio: '',
+                avatar: null,
+                verified: false
+            };
+            users.push(newUser);
+            currentUser = newUser;
+            saveAll();
+            initApp();
+        } else {
+            const found = users.find(u => u.handle === handleVal && u.pass === passVal);
+            if (!found) {
+                return showAuthError('Неверный никнейм или пароль.');
+            }
+            currentUser = found;
+            saveAll();
+            initApp();
+        }
+    }
+
+    function logout() {
+        currentUser = null;
+        saveAll();
+        document.getElementById('authPassInput').value = '';
+        document.getElementById('appContainer').style.display = 'none';
+        document.getElementById('authScreen').style.display = 'flex';
+    }
+
+    function initApp() {
+        applyPrefs();
+        if (!currentUser) {
+            document.getElementById('authScreen').style.display = 'flex';
+            document.getElementById('appContainer').style.display = 'none';
+            return;
+        }
+        document.getElementById('authScreen').style.display = 'none';
+        document.getElementById('appContainer').style.display = 'block';
+        renderAvatar(document.getElementById('creatorAvatar'), currentUser);
+        switchTab('feed');
+    }
+
+    function renderAvatar(el, user) {
+        if (user && user.avatar) {
+            el.innerHTML = `<img src="${user.avatar}" alt="ava">`;
+        } else {
+            const letter = user && user.name ? user.name[0].toUpperCase() : 'G';
+            el.innerHTML = letter;
+        }
+    }
+
+    function getUserByHandle(handle) {
+        return users.find(u => u.handle === handle) || { name: handle, handle: handle, avatar: null, verified: false, bio: '' };
+    }
+
+    function switchTab(tab) {
+        currentTab = tab;
+        viewingProfileHandle = null;
+        
+        document.getElementById('mainTabs').style.display = (tab === 'settings') ? 'none' : 'flex';
+        document.getElementById('tab-feed').classList.toggle('active', tab === 'feed');
+        document.getElementById('tab-reposts').classList.toggle('active', tab === 'reposts');
+        
+        document.getElementById('profileView').style.display = 'none';
+        document.getElementById('settingsView').style.display = (tab === 'settings') ? 'flex' : 'none';
+        document.getElementById('postCreator').style.display = (tab === 'feed') ? 'flex' : 'none';
+        document.getElementById('feedContainer').style.display = (tab === 'settings') ? 'none' : 'block';
+
+        if (tab === 'settings') {
+            document.getElementById('setNameInput').value = currentUser.name;
+            document.getElementById('setBioInput').value = currentUser.bio || '';
+            document.getElementById('setVerifiedInput').checked = !!currentUser.verified;
+        } else {
+            renderFeed();
+        }
+    }
+
+    function openProfile(handle) {
+        viewingProfileHandle = handle;
+        const user = getUserByHandle(handle);
+        
+        document.getElementById('mainTabs').style.display = 'none';
+        document.getElementById('settingsView').style.display = 'none';
+        document.getElementById('postCreator').style.display = (handle === currentUser.handle) ? 'flex' : 'none';
+        document.getElementById('profileView').style.display = 'block';
+        document.getElementById('feedContainer').style.display = 'block';
+
+        renderAvatar(document.getElementById('profAvatar'), user);
+        document.getElementById('profName').innerHTML = `${escapeHTML(user.name)} ${user.verified ? '<span class="verified-badge">✓</span>' : ''}`;
+        document.getElementById('profHandle').innerText = '@' + user.handle;
+        document.getElementById('profBio').innerText = user.bio || 'Нет описания профиля';
+        document.getElementById('profEditBtn').style.display = (handle === currentUser.handle) ? 'inline-block' : 'none';
+
+        const userPosts = posts.filter(p => p.authorHandle === handle);
+        const userReposts = posts.filter(p => p.reposts.includes(handle));
+        document.getElementById('profPostsCount').innerText = userPosts.length;
+        document.getElementById('profRepostsCount').innerText = userReposts.length;
+
+        renderFeed();
+    }
+
+    // Публикация постов
+    function handleImageUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            pendingPostImage = ev.target.result;
+            const prev = document.getElementById('imagePreview');
+            prev.src = pendingPostImage;
+            prev.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function publishPost() {
+        if (!currentUser) return;
+        const text = document.getElementById('postText').value.trim();
+        if (!text && !pendingPostImage) return;
+
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+        posts.unshift({
+            id: Date.now(),
+            authorHandle: currentUser.handle,
+            text: text,
+            image: pendingPostImage,
+            time: timeStr,
+            likes: [],
+            reposts: [],
+            comments: []
+        });
+
+        document.getElementById('postText').value = '';
+        document.getElementById('postImageInput').value = '';
+        document.getElementById('imagePreview').style.display = 'none';
+        pendingPostImage = null;
+
+        saveAll();
+        if (viewingProfileHandle) openProfile(viewingProfileHandle);
+        else renderFeed();
+    }
+
+    function deletePost(id) {
+        posts = posts.filter(p => p.id !== id);
+        saveAll();
+        if (viewingProfileHandle) openProfile(viewingProfileHandle);
+        else renderFeed();
+    }
+
+    function toggleLike(id) {
+        const post = posts.find(p => p.id === id);
+        if (!post) return;
+        const idx = post.likes.indexOf(currentUser.handle);
+        if (idx === -1) post.likes.push(currentUser.handle);
+        else post.likes.splice(idx, 1);
+        saveAll();
+        renderFeed();
+    }
+
+    function toggleRepost(id) {
+        const post = posts.find(p => p.id === id);
+        if (!post) return;
+        const idx = post.reposts.indexOf(currentUser.handle);
+        if (idx === -1) post.reposts.push(currentUser.handle);
+        else post.reposts.splice(idx, 1);
+        saveAll();
+        if (viewingProfileHandle) openProfile(viewingProfileHandle);
+        else renderFeed();
+    }
+
+    function toggleComments(id) {
+        const el = document.getElementById('comments-' + id);
+        el.style.display = (el.style.display === 'flex') ? 'none' : 'flex';
+    }
+
+    function submitComment(id) {
+        const input = document.getElementById('comm-in-' + id);
+        const text = input.value.trim();
+        if (!text) return;
+        const post = posts.find(p => p.id === id);
+        post.comments.push({
+            authorHandle: currentUser.handle,
+            text: text
+        });
+        saveAll();
+        renderFeed();
+        document.getElementById('comments-' + id).style.display = 'flex';
+    }
+
+    // Сохранение настроек
+    function handleAvatarUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            currentUser.avatar = ev.target.result;
+            const dbUser = users.find(u => u.handle === currentUser.handle);
+            if (dbUser) dbUser.avatar = currentUser.avatar;
+            saveAll();
+            renderAvatar(document.getElementById('creatorAvatar'), currentUser);
+            alert('Аватарка обновлена!');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function saveProfileSettings() {
+        const newName = document.getElementById('setNameInput').value.trim();
+        const newBio = document.getElementById('setBioInput').value.trim();
+        const isVer = document.getElementById('setVerifiedInput').checked;
+
+        if (!newName || !isValidLettersOnly(newName)) {
+            return alert('Имя должно содержать только буквы, без пробелов и смайликов.');
+        }
+
+        currentUser.name = newName;
+        currentUser.bio = newBio;
+        currentUser.verified = isVer;
+
+        const dbUser = users.find(u => u.handle === currentUser.handle);
+        if (dbUser) {
+            dbUser.name = newName;
+            dbUser.bio = newBio;
+            dbUser.verified = isVer;
+        }
+
+        saveAll();
+        renderAvatar(document.getElementById('creatorAvatar'), currentUser);
+        openProfile(currentUser.handle);
+    }
+
+    function changePassword() {
+        const newPass = document.getElementById('setNewPassInput').value.trim();
+        if (!newPass) return alert('Введите новый пароль.');
+        currentUser.pass = newPass;
+        const dbUser = users.find(u => u.handle === currentUser.handle);
+        if (dbUser) dbUser.pass = newPass;
+        document.getElementById('setNewPassInput').value = '';
+        saveAll();
+        alert('Пароль успешно изменён!');
+    }
+
+    function escapeHTML(str) {
+        return str ? str.replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t])) : '';
+    }
+
+    function renderFeed() {
+        const container = document.getElementById('feedContainer');
+        let list = posts;
+
+        if (viewingProfileHandle) {
+            list = posts.filter(p => p.authorHandle === viewingProfileHandle || p.reposts.includes(viewingProfileHandle));
+        } else if (currentTab === 'reposts') {
+            list = posts.filter(p => p.reposts.includes(currentUser.handle));
+        }
+
+        if (list.length === 0) {
+            container.innerHTML = `<div style="padding: 40px 20px; text-align: center; color: var(--muted);">Здесь пока нет записей</div>`;
+            return;
+        }
+
+        container.innerHTML = list.map(post => {
+            const author = getUserByHandle(post.authorHandle);
+            const isLiked = post.likes.includes(currentUser.handle);
+            const isReposted = post.reposts.includes(currentUser.handle);
+            const isMine = post.authorHandle === currentUser.handle;
+
+            let repostLabel = '';
+            if (viewingProfileHandle && post.reposts.includes(viewingProfileHandle)) {
+                repostLabel = `<div class="repost-badge">🔁 Репостнул(а) @${escapeHTML(viewingProfileHandle)}</div>`;
+            } else if (isReposted) {
+                repostLabel = `<div class="repost-badge">🔁 Вы репостнули</div>`;
+            }
+
+            const avaHtml = author.avatar 
+                ? `<img src="${author.avatar}" alt="ava">` 
+                : escapeHTML(author.name[0].toUpperCase());
+
+            return `
+                <div class="post">
+                    ${repostLabel}
+                    <div class="post-main">
+                        <div class="avatar" onclick="openProfile('${author.handle}')">${avaHtml}</div>
+                        <div class="post-content">
+                            <div class="post-header">
+                                <div class="post-author-info">
+                                    <span class="post-name" onclick="openProfile('${author.handle}')">${escapeHTML(author.name)}</span>
+                                    ${author.verified ? '<span class="verified-badge">✓</span>' : ''}
+                                    <span class="post-handle">@${escapeHTML(author.handle)}</span>
+                                    <span class="post-time">· ${post.time}</span>
+                                </div>
+                                ${isMine ? `<span class="del-btn" onclick="deletePost(${post.id})">✕</span>` : ''}
+                            </div>
+                            <div class="post-text">${escapeHTML(post.text)}</div>
+                            ${post.image ? `<img src="${post.image}" class="post-img">` : ''}
+                            <div class="post-actions">
+                                <div class="act-btn" onclick="toggleComments(${post.id})">💬 ${post.comments.length}</div>
+                                <div class="act-btn ${isReposted ? 'reposted' : ''}" onclick="toggleRepost(${post.id})">🔁 ${post.reposts.length}</div>
+                                <div class="act-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike(${post.id})">❤️ ${post.likes.length}</div>
+                            </div>
+                            <div class="comments-box" id="comments-${post.id}">
+                                ${post.comments.map(c => {
+                                    const cUser = getUserByHandle(c.authorHandle);
+                                    return `<div class="comment-item">
+                                        <div class="comment-head">
+                                            <span class="comment-name">${escapeHTML(cUser.name)}</span>
+                                            <span class="comment-handle">@${escapeHTML(cUser.handle)}</span>
+                                        </div>
+                                        <div>${escapeHTML(c.text)}</div>
+                                    </div>`;
+                                }).join('')}
+                                <div class="comment-form">
+                                    <input type="text" id="comm-in-${post.id}" placeholder="Написать комментарий...">
+                                    <button class="small" onclick="submitComment(${post.id})">➤</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    initApp();
+</script>
+</body>
+</html>
