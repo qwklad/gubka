@@ -9,481 +9,656 @@
         :root {
             --bg: #0f1419;
             --card: #16181c;
+            --hover: #1d2228;
             --border: #2f3336;
             --text: #e7e9ea;
             --muted: #71767b;
             --accent: #f7b500;
-            --accent-hover: #d99f00;
             --danger: #f4212e;
-            --font-scale: 1;
-        }
-        [data-theme="dim"] {
-            --bg: #15202b;
-            --card: #1e2732;
-            --border: #38444d;
-            --text: #f7f9f9;
-            --muted: #8b98a5;
-        }
-        [data-theme="light"] {
-            --bg: #ffffff;
-            --card: #f7f9f9;
-            --border: #eff3f4;
-            --text: #0f1419;
-            --muted: #536471;
+            --green: #00ba7c;
+            --pink: #f91880;
+            --font-size: 15px;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; font-size: calc(15px * var(--font-scale)); }
-        .container { width: 100%; max-width: 600px; border-left: 1px solid var(--border); border-right: 1px solid var(--border); min-height: 100vh; padding-bottom: 60px; display: none; }
+        body { background-color: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; font-size: var(--font-size); }
         
         /* Полноэкранная авторизация */
-        .auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
-        .auth-card { width: 100%; max-width: 400px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 28px 20px; display: flex; flex-direction: column; gap: 14px; }
-        .auth-logo { font-size: 32px; font-weight: 800; color: var(--accent); text-align: center; margin-bottom: 4px; }
-        .auth-subtitle { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 8px; }
-        .auth-switch { text-align: center; font-size: 14px; color: var(--muted); margin-top: 6px; }
+        #authOverlay {
+            position: fixed; inset: 0; background: var(--bg); z-index: 1000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px;
+        }
+        .auth-card { width: 100%; max-width: 400px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 30px 24px; }
+        .auth-logo { font-size: 32px; font-weight: 800; color: var(--accent); text-align: center; margin-bottom: 8px; }
+        .auth-sub { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+        .auth-form { display: flex; flex-direction: column; gap: 14px; }
+        .auth-switch { margin-top: 18px; text-align: center; font-size: 14px; color: var(--muted); }
         .auth-switch span { color: var(--accent); cursor: pointer; font-weight: 600; }
-        .error-msg { color: var(--danger); font-size: 13px; text-align: center; display: none; }
+        .error-msg { color: var(--danger); font-size: 13px; display: none; text-align: center; }
 
-        /* Шапка */
-        header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--bg); opacity: 0.95; backdrop-filter: blur(8px); z-index: 10; }
-        .logo { font-size: 20px; font-weight: 800; color: var(--accent); cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        /* Основной контейнер */
+        #appContainer { display: none; width: 100%; max-width: 600px; border-left: 1px solid var(--border); border-right: 1px solid var(--border); min-height: 100vh; padding-bottom: 70px; }
+        
+        header {
+            padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; background: rgba(15, 20, 25, 0.88); backdrop-filter: blur(10px); z-index: 20;
+        }
+        .logo { font-size: 21px; font-weight: 800; color: var(--accent); cursor: pointer; display: flex; align-items: center; gap: 6px; }
         .nav-btns { display: flex; gap: 8px; align-items: center; }
 
-        /* Вкладки ленты */
-        .tabs { display: flex; border-bottom: 1px solid var(--border); }
-        .tab { flex: 1; text-align: center; padding: 12px; font-weight: 700; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; }
-        .tab.active { color: var(--text); border-bottom-color: var(--accent); }
-
-        /* Кнопки и поля */
-        button { background: var(--accent); color: #000; border: none; padding: 9px 16px; border-radius: 20px; font-weight: 700; font-size: 14px; cursor: pointer; }
+        /* Кнопки и инпуты */
+        button { background: var(--accent); color: #000; border: none; padding: 9px 16px; border-radius: 20px; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.15s; }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
         button.outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
-        button.danger { background: var(--danger); color: #fff; }
+        button.outline:hover { background: var(--hover); }
+        button.danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
         button.small { padding: 6px 12px; font-size: 13px; }
-        input, textarea, select { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 11px 12px; border-radius: 10px; font-size: 15px; outline: none; }
+        
+        input, textarea, select {
+            width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text);
+            padding: 12px; border-radius: 12px; font-size: 15px; outline: none;
+        }
         input:focus, textarea:focus { border-color: var(--accent); }
 
-        /* Аватарки */
-        .avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--accent); color: #000; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; object-fit: cover; font-size: 18px; }
-        .avatar.large { width: 72px; height: 72px; font-size: 28px; }
-        .verified-badge { color: var(--accent); font-size: 14px; margin-left: 3px; }
+        /* Вкладки */
+        .tabs { display: flex; border-bottom: 1px solid var(--border); }
+        .tab { flex: 1; text-align: center; padding: 14px 8px; font-weight: 700; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; font-size: 14px; }
+        .tab.active { color: var(--text); border-bottom-color: var(--accent); }
+
+        /* Поиск */
+        .search-box { display: none; padding: 14px 16px; border-bottom: 1px solid var(--border); flex-direction: column; gap: 12px; }
+        .user-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--card); border-radius: 12px; border: 1px solid var(--border); }
+        .user-row-left { display: flex; align-items: center; gap: 10px; cursor: pointer; }
 
         /* Профиль */
-        .profile-box { padding: 16px; border-bottom: 1px solid var(--border); display: none; background: var(--card); }
-        .profile-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-        .profile-info { flex: 1; }
-        .profile-name { font-size: 19px; font-weight: 800; display: flex; align-items: center; }
+        .profile-box { display: none; padding: 18px 16px; border-bottom: 1px solid var(--border); background: var(--card); }
+        .profile-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+        .avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; background: var(--accent); color: #000; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; flex-shrink: 0; }
+        .avatar.small { width: 40px; height: 40px; font-size: 16px; }
+        .profile-name { font-size: 19px; font-weight: 800; display: flex; align-items: center; gap: 5px; }
+        .verified-badge { color: #1d9bf0; font-size: 16px; }
         .profile-handle { color: var(--muted); font-size: 14px; }
-        .profile-bio { margin-top: 8px; line-height: 1.4; }
-        .profile-stats { display: flex; gap: 16px; margin-top: 10px; font-size: 13px; color: var(--muted); }
-        .profile-stats b { color: var(--text); }
+        .profile-bio { margin-top: 10px; line-height: 1.4; }
+        .profile-stats { display: flex; gap: 16px; margin-top: 12px; font-size: 14px; color: var(--muted); }
+        .profile-stats span b { color: var(--text); cursor: pointer; }
 
-        /* Панель настроек */
-        .settings-modal { display: none; padding: 16px; border-bottom: 1px solid var(--border); background: var(--card); flex-direction: column; gap: 14px; }
-        .settings-section { display: flex; flex-direction: column; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-        .settings-title { font-weight: 700; font-size: 14px; color: var(--muted); text-transform: uppercase; }
-        .color-row { display: flex; gap: 10px; }
-        .color-dot { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
-        .color-dot.active { border-color: var(--text); transform: scale(1.1); }
-        .checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
-        .checkbox-row input { width: auto; }
+        /* Настройки */
+        .settings-box { display: none; padding: 18px 16px; border-bottom: 1px solid var(--border); background: var(--card); flex-direction: column; gap: 14px; }
+        .settings-title { font-size: 18px; font-weight: 800; }
+        .settings-group { display: flex; flex-direction: column; gap: 6px; }
+        .settings-label { font-size: 13px; color: var(--muted); font-weight: 600; }
+        .color-dots { display: flex; gap: 10px; }
+        .color-dot { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+        .color-dot.active { border-color: #fff; transform: scale(1.1); }
 
         /* Создание поста */
-        .post-creator { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; gap: 12px; }
-        .creator-body { flex: 1; display: flex; flex-direction: column; gap: 10px; }
-        .creator-body textarea { resize: none; height: 75px; border: none; background: transparent; padding: 4px 0; font-size: calc(16px * var(--font-scale)); }
-        .creator-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 10px; }
-        .file-label { color: var(--accent); font-size: 14px; cursor: pointer; font-weight: 600; }
-        #imagePreview { max-width: 100%; max-height: 220px; border-radius: 12px; display: none; object-fit: cover; }
+        .post-creator { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+        .post-creator textarea { resize: none; height: 80px; border: none; background: transparent; padding: 4px 0; font-size: 16px; }
+        .media-preview-wrap { position: relative; display: none; }
+        .media-preview-wrap img, .media-preview-wrap video { width: 100%; max-height: 280px; border-radius: 14px; object-fit: cover; border: 1px solid var(--border); }
+        .remove-media { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.75); color: #fff; border-radius: 50%; width: 28px; height: 28px; padding: 0; }
+        .creator-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 10px; flex-wrap: wrap; gap: 8px; }
+        .media-btns { display: flex; gap: 14px; align-items: center; }
+        .file-label { color: var(--accent); font-size: 14px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 5px; }
 
-        /* Посты */
+        /* Лента и посты */
         .post { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; gap: 12px; }
-        .post-main { flex: 1; min-width: 0; }
-        .repost-tag { font-size: 12px; color: var(--muted); font-weight: 700; margin-bottom: 4px; }
-        .post-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-        .post-author { display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap; }
+        .post-body { flex: 1; min-width: 0; }
+        .pinned-label { font-size: 12px; color: var(--muted); font-weight: 700; margin-bottom: 4px; }
+        .repost-label { font-size: 12px; color: var(--green); font-weight: 700; margin-bottom: 4px; }
+        .post-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; margin-bottom: 4px; }
+        .post-author-info { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
         .post-name { font-weight: 700; cursor: pointer; }
         .post-name:hover { text-decoration: underline; }
         .post-handle, .post-time { color: var(--muted); font-size: 13px; }
-        .del-btn { color: var(--muted); cursor: pointer; font-size: 13px; }
-        .del-btn:hover { color: var(--danger); }
+        .post-menu { display: flex; gap: 8px; color: var(--muted); font-size: 13px; }
+        .post-menu span { cursor: pointer; }
         .post-text { line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
-        .post-img { max-width: 100%; border-radius: 12px; margin-top: 10px; border: 1px solid var(--border); }
-        .post-footer { margin-top: 12px; display: flex; justify-content: space-between; max-width: 320px; color: var(--muted); font-size: 14px; }
-        .action-btn { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 5px; }
-        .action-btn.liked { color: #f91880; font-weight: 700; }
-        .action-btn.reposted { color: #00ba7c; font-weight: 700; }
+        .post-media { width: 100%; max-height: 360px; border-radius: 14px; margin-top: 10px; border: 1px solid var(--border); object-fit: cover; }
+        
+        .post-footer { margin-top: 12px; display: flex; justify-content: space-between; max-width: 340px; color: var(--muted); font-size: 14px; }
+        .action-btn { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 6px; transition: 0.15s; }
+        .action-btn.liked { color: var(--pink); }
+        .action-btn.reposted { color: var(--green); }
 
         /* Комментарии */
         .comments-section { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); display: none; flex-direction: column; gap: 8px; }
         .comment-item { background: var(--card); padding: 8px 12px; border-radius: 10px; font-size: 13px; }
-        .comment-author { font-weight: 700; color: var(--accent); margin-right: 6px; }
+        .comment-author { font-weight: 700; color: var(--accent); margin-right: 6px; cursor: pointer; }
         .comment-input-row { display: flex; gap: 8px; margin-top: 4px; }
-        .comment-input-row input { padding: 8px 10px; font-size: 13px; }
+        .comment-input-row input { padding: 8px 12px; font-size: 13px; }
+
+        /* Модальное окно списков */
+        #listModal {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 500;
+            justify-content: center; align-items: center; padding: 20px;
+        }
+        .modal-card { width: 100%; max-width: 400px; background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 18px; max-height: 75vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; font-weight: 800; }
+        .loader { text-align: center; padding: 20px; color: var(--muted); font-size: 14px; }
     </style>
 </head>
 <body>
 
-<!-- Полноэкранный блок входа и регистрации -->
-<div class="auth-screen" id="authScreen">
+<!-- Полноэкранная регистрация / вход -->
+<div id="authOverlay">
     <div class="auth-card">
         <div class="auth-logo">🧽 Gubka</div>
-        <div class="auth-subtitle" id="authSubtitle">Войдите, чтобы читать и публиковать</div>
-        <input type="text" id="nameInput" placeholder="Имя (только буквы)" maxlength="25" style="display: none;" oninput="filterLettersOnly(this)">
-        <input type="text" id="handleInput" placeholder="Юзернейм (только буквы)" maxlength="20" oninput="filterLettersOnly(this)">
-        <input type="password" id="passInput" placeholder="Пароль" maxlength="50">
-        <div class="error-msg" id="errorMsg"></div>
-        <button id="authSubmitBtn" onclick="handleAuth()">Войти</button>
+        <div class="auth-sub" id="authSubtitle">Войдите, чтобы читать и публиковать посты</div>
+        <div class="auth-form">
+            <input type="text" id="nameInput" placeholder="Имя (только буквы, без пробелов)" style="display: none;" oninput="sanitizeLetters(this)">
+            <input type="text" id="handleInput" placeholder="Юзернейм (только буквы, без @)" oninput="sanitizeLetters(this)">
+            <input type="password" id="passInput" placeholder="Пароль">
+            <div class="error-msg" id="errorMsg"></div>
+            <button id="authSubmitBtn" onclick="handleAuth()">Войти</button>
+        </div>
         <div class="auth-switch" id="authSwitchText">
             Нет аккаунта? <span onclick="toggleAuthMode()">Зарегистрироваться</span>
         </div>
     </div>
 </div>
 
-<!-- Основной интерфейс соцсети -->
-<div class="container" id="mainApp">
+<!-- Основной интерфейс -->
+<div id="appContainer">
     <header>
-        <div class="logo" onclick="openHome()">🧽 Gubka</div>
+        <div class="logo" onclick="switchTab('all')">🧽 Gubka</div>
         <div class="nav-btns">
-            <button class="outline small" onclick="loadPosts()" title="Обновить ленту">🔄</button>
+            <button class="outline small" onclick="loadData()" title="Обновить">🔄</button>
             <button class="outline small" onclick="openProfile(currentUser.handle)">Профиль</button>
             <button class="outline small" onclick="toggleSettings()">⚙️</button>
         </div>
     </header>
 
+    <!-- Вкладки навигации -->
+    <div class="tabs" id="mainTabs">
+        <div class="tab active" id="tab-all" onclick="switchTab('all')">Главная</div>
+        <div class="tab" id="tab-following" onclick="switchTab('following')">Подписки</div>
+        <div class="tab" id="tab-search" onclick="switchTab('search')">🔍 Поиск</div>
+    </div>
+
+    <!-- Блок поиска людей -->
+    <div class="search-box" id="searchBox">
+        <input type="text" id="searchInput" placeholder="Введите имя или @юзернейм..." oninput="renderSearch()">
+        <div id="searchResults" style="display: flex; flex-direction: column; gap: 8px;"></div>
+    </div>
+
     <!-- Настройки -->
-    <div class="settings-modal" id="settingsModal">
-        <div class="settings-section">
-            <div class="settings-title">Профиль</div>
-            <input type="text" id="setName" placeholder="Имя (только буквы)" maxlength="25" oninput="filterLettersOnly(this)">
-            <input type="text" id="setBio" placeholder="О себе (до 120 символов)" maxlength="120">
-            <label class="file-label">
-                🖼 Загрузить новую аватарку
+    <div class="settings-box" id="settingsBox">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="settings-title">Настройки аккаунта</div>
+            <button class="outline small" onclick="toggleSettings()">Закрыть</button>
+        </div>
+        
+        <div class="settings-group">
+            <div class="settings-label">Аватарка</div>
+            <label class="file-label" style="border: 1px dashed var(--border); padding: 10px; border-radius: 10px; justify-content: center;">
+                🖼 Загрузить фото профиля
                 <input type="file" accept="image/*" style="display: none;" onchange="uploadAvatar(event)">
             </label>
-            <label class="checkbox-row">
-                <input type="checkbox" id="setVerified"> Галочка верификации
-            </label>
-            <button class="small" onclick="saveProfileSettings()">Сохранить профиль</button>
         </div>
 
-        <div class="settings-section">
-            <div class="settings-title">Оформление</div>
-            <select id="setTheme" onchange="applyAppearance()">
-                <option value="dark">Тема: Тёмная</option>
-                <option value="dim">Тема: Сумерки</option>
-                <option value="light">Тема: Светлая</option>
+        <div class="settings-group">
+            <div class="settings-label">Имя (только буквы, без пробелов)</div>
+            <input type="text" id="setNameInput" oninput="sanitizeLetters(this)">
+        </div>
+
+        <div class="settings-group">
+            <div class="settings-label">О себе (био)</div>
+            <input type="text" id="setBioInput" maxlength="140" placeholder="Расскажите о себе...">
+        </div>
+
+        <button onclick="saveProfileSettings()">Сохранить профиль</button>
+
+        <div class="settings-group" style="margin-top: 8px;">
+            <div class="settings-label">Тема оформления</div>
+            <select id="themeSelect" onchange="applyAppearance()">
+                <option value="dark">Тёмная (Классика)</option>
+                <option value="dim">Сумерки (Сине-серая)</option>
+                <option value="light">Светлая</option>
             </select>
-            <div class="color-row" id="colorPicker">
-                <div class="color-dot" style="background: #f7b500;" onclick="setAccent('#f7b500')"></div>
-                <div class="color-dot" style="background: #1d9bf0;" onclick="setAccent('#1d9bf0')"></div>
-                <div class="color-dot" style="background: #f91880;" onclick="setAccent('#f91880')"></div>
-                <div class="color-dot" style="background: #00ba7c;" onclick="setAccent('#00ba7c')"></div>
-                <div class="color-dot" style="background: #7856ff;" onclick="setAccent('#7856ff')"></div>
+        </div>
+
+        <div class="settings-group">
+            <div class="settings-label">Акцентный цвет</div>
+            <div class="color-dots">
+                <div class="color-dot active" style="background: #f7b500;" onclick="setAccent('#f7b500', this)"></div>
+                <div class="color-dot" style="background: #1d9bf0;" onclick="setAccent('#1d9bf0', this)"></div>
+                <div class="color-dot" style="background: #00ba7c;" onclick="setAccent('#00ba7c', this)"></div>
+                <div class="color-dot" style="background: #f91880;" onclick="setAccent('#f91880', this)"></div>
+                <div class="color-dot" style="background: #7856ff;" onclick="setAccent('#7856ff', this)"></div>
             </div>
-            <select id="setFontSize" onchange="applyAppearance()">
-                <option value="0.9">Шрифт: Мелкий</option>
-                <option value="1" selected>Шрифт: Обычный</option>
-                <option value="1.15">Шрифт: Крупный</option>
+        </div>
+
+        <div class="settings-group">
+            <div class="settings-label">Размер шрифта</div>
+            <select id="fontSelect" onchange="applyAppearance()">
+                <option value="14px">Мелкий</option>
+                <option value="15px" selected>Стандартный</option>
+                <option value="17px">Крупный</option>
             </select>
         </div>
 
-        <div class="settings-section" style="border-bottom: none;">
-            <div class="settings-title">Безопасность</div>
-            <input type="password" id="oldPassInput" placeholder="Текущий пароль" maxlength="50">
-            <input type="password" id="newPassInput" placeholder="Новый пароль" maxlength="50">
-            <button class="outline small" onclick="changePassword()">Обновить пароль</button>
-            <button class="danger small" style="margin-top: 8px;" onclick="logout()">Выйти из аккаунта</button>
+        <div class="settings-group" style="margin-top: 8px; border-top: 1px solid var(--border); padding-top: 12px;">
+            <div class="settings-label">Смена пароля</div>
+            <input type="password" id="oldPassInput" placeholder="Текущий пароль">
+            <input type="password" id="newPassInput" placeholder="Новый пароль">
+            <button class="outline" onclick="changePassword()">Обновить пароль</button>
         </div>
+
+        <button class="danger" style="margin-top: 10px;" onclick="logout()">Выйти из аккаунта</button>
     </div>
 
-    <!-- Просмотр профиля -->
+    <!-- Профиль пользователя -->
     <div class="profile-box" id="profileBox">
-        <div class="profile-header">
-            <div id="profAvatarWrap"></div>
-            <div class="profile-info">
-                <div class="profile-name" id="profName"></div>
-                <div class="profile-handle" id="profHandle"></div>
-                <div class="profile-bio" id="profBio"></div>
-                <div class="profile-stats">
-                    <span><b id="profPostsCount">0</b> постов</span>
-                    <span><b id="profRepostsCount">0</b> репостов</span>
+        <div class="profile-top">
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <div id="profAvatarWrap"></div>
+                <div>
+                    <div class="profile-name" id="profName"></div>
+                    <div class="profile-handle" id="profHandle"></div>
                 </div>
             </div>
-            <button class="outline small" id="profActionBtn" onclick="toggleSettings()">Настроить</button>
+            <div id="profActionBtn"></div>
         </div>
-    </div>
-
-    <!-- Вкладки -->
-    <div class="tabs" id="feedTabs">
-        <div class="tab active" id="tabAll" onclick="switchTab('all')">Главная</div>
-        <div class="tab" id="tabReposts" onclick="switchTab('reposts')">Репосты</div>
+        <div class="profile-bio" id="profBio"></div>
+        <div class="profile-stats">
+            <span><b id="profFollowingCount" onclick="openFollowList('following')">0</b> в читаемых</span>
+            <span><b id="profFollowersCount" onclick="openFollowList('followers')">0</b> подписчиков</span>
+        </div>
+        <div class="tabs" style="margin-top: 14px;">
+            <div class="tab active" id="ptab-posts" onclick="switchProfileTab('posts')">Посты</div>
+            <div class="tab" id="ptab-reposts" onclick="switchProfileTab('reposts')">Репосты</div>
+        </div>
     </div>
 
     <!-- Создание поста -->
     <div class="post-creator" id="postCreator">
-        <div id="creatorAvatarWrap"></div>
-        <div class="creator-body">
-            <textarea id="postInput" placeholder="Что нового впитал сегодня?" maxlength="500"></textarea>
-            <img id="imagePreview" alt="Фото">
-            <div class="creator-footer">
+        <textarea id="postInput" maxlength="500" placeholder="Что нового впитал сегодня?"></textarea>
+        
+        <div class="media-preview-wrap" id="mediaPreviewWrap">
+            <button class="remove-media" onclick="clearMedia()">✕</button>
+            <img id="imgPreview" style="display: none;">
+            <video id="vidPreview" controls playsinline style="display: none;"></video>
+        </div>
+
+        <div class="creator-footer">
+            <div class="media-btns">
                 <label class="file-label">
-                    📷 Добавить фото
-                    <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="previewImage(event)">
+                    📷 Фото
+                    <input type="file" id="imgInput" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
                 </label>
-                <button id="publishBtn" onclick="createPost()">Опубликовать</button>
+                <label class="file-label">
+                    🎬 Видео (до 15с)
+                    <input type="file" id="vidInput" accept="video/*" style="display: none;" onchange="handleVideoSelect(event)">
+                </label>
             </div>
+            <button id="publishBtn" onclick="createPost()">Опубликовать</button>
         </div>
     </div>
 
     <!-- Лента -->
-    <div id="feed"></div>
+    <div id="feed"><div class="loader">Загрузка ленты...</div></div>
+</div>
+
+<!-- Модальное окно подписчиков -->
+<div id="listModal" onclick="if(event.target===this) this.style.display='none'">
+    <div class="modal-card">
+        <div class="modal-header">
+            <span id="modalTitle">Список</span>
+            <button class="outline small" onclick="document.getElementById('listModal').style.display='none'">✕</button>
+        </div>
+        <div id="modalBody" style="display: flex; flex-direction: column; gap: 8px;"></div>
+    </div>
 </div>
 
 <script>
     const SUPABASE_URL = 'https://rcxfbotfsgjndzjjqhls.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_B2BfD8ybX7GXxj1h1ISuTA_uJZh3Gj3';
-    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let isRegisterMode = false;
-    let viewingHandle = null;
-    let currentTab = 'all';
-    let selectedImageBase64 = null;
+    let currentUser = JSON.parse(localStorage.getItem('gubka_user')) || null;
+    let allUsers = [];
+    let allPosts = [];
+    
+    let activeTab = 'all';
+    let viewingProfile = null;
+    let profileSubTab = 'posts';
 
-    let currentUser = JSON.parse(localStorage.getItem('gubka_session')) || null;
-    let usersMap = {};
-    let posts = [];
-    let settings = JSON.parse(localStorage.getItem('gubka_settings')) || { theme: 'dark', accent: '#f7b500', fontScale: '1' };
+    let selectedImg = '';
+    let selectedVid = '';
 
-    function filterLettersOnly(input) {
-        input.value = input.value.replace(/[^a-zA-Zа-яА-ЯёЁ]/g, '');
+    // Строгий фильтр: только русские и английские буквы (без пробелов, цифр и смайликов)
+    function sanitizeLetters(el) {
+        el.value = el.value.replace(/[^a-zA-Zа-яА-ЯёЁ]/g, '');
     }
 
-    function compressImage(file, maxWidth, callback) {
+    function toggleAuthMode() {
+        isRegisterMode = !isRegisterMode;
+        document.getElementById('errorMsg').style.display = 'none';
+        document.getElementById('nameInput').style.display = isRegisterMode ? 'block' : 'none';
+        document.getElementById('authSubtitle').innerText = isRegisterMode ? 'Создайте аккаунт в Gubka' : 'Войдите, чтобы читать и публиковать посты';
+        document.getElementById('authSubmitBtn').innerText = isRegisterMode ? 'Создать аккаунт' : 'Войти';
+        document.getElementById('authSwitchText').innerHTML = isRegisterMode 
+            ? 'Уже есть аккаунт? <span onclick="toggleAuthMode()">Войти</span>' 
+            : 'Нет аккаунта? <span onclick="toggleAuthMode()">Зарегистрироваться</span>';
+    }
+
+    function showAuthError(msg) {
+        const el = document.getElementById('errorMsg');
+        el.innerText = msg;
+        el.style.display = 'block';
+    }
+
+    async function handleAuth() {
+        const name = document.getElementById('nameInput').value.trim();
+        const handle = document.getElementById('handleInput').value.trim().toLowerCase();
+        const pass = document.getElementById('passInput').value.trim();
+
+        if (!handle || !pass || (isRegisterMode && !name)) {
+            return showAuthError('Заполните все поля (имя и юзернейм — только буквы).');
+        }
+
+        const btn = document.getElementById('authSubmitBtn');
+        btn.disabled = true;
+
+        try {
+            if (isRegisterMode) {
+                const { data, error } = await sb.rpc('register_user', { p_handle: handle, p_name: name, p_pass: pass });
+                if (error) throw error;
+                if (data && data.error) return showAuthError(data.error);
+                currentUser = data;
+            } else {
+                const { data, error } = await sb.rpc('login_user', { p_handle: handle, p_pass: pass });
+                if (error) throw error;
+                if (data && data.error) return showAuthError(data.error);
+                currentUser = data;
+            }
+            localStorage.setItem('gubka_user', JSON.stringify(currentUser));
+            initApp();
+        } catch (err) {
+            showAuthError('Ошибка соединения с сервером.');
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    function logout() {
+        currentUser = null;
+        localStorage.removeItem('gubka_user');
+        document.getElementById('appContainer').style.display = 'none';
+        document.getElementById('authOverlay').style.display = 'flex';
+        document.getElementById('passInput').value = '';
+    }
+
+    async function initApp() {
+        if (!currentUser) return;
+        document.getElementById('authOverlay').style.display = 'none';
+        document.getElementById('appContainer').style.display = 'block';
+        loadAppearance();
+        await loadData();
+    }
+
+    async function loadData() {
+        const [usersRes, postsRes] = await Promise.all([
+            sb.from('users').select('*'),
+            sb.from('posts').select('*').order('id', { ascending: false })
+        ]);
+        if (usersRes.data) {
+            allUsers = usersRes.data;
+            const freshMe = allUsers.find(u => u.handle === currentUser.handle);
+            if (freshMe) {
+                currentUser = freshMe;
+                localStorage.setItem('gubka_user', JSON.stringify(currentUser));
+            }
+        }
+        if (postsRes.data) allPosts = postsRes.data;
+        renderCurrentView();
+    }
+
+    // Проверка верификации: галочка только для аккаунта qwklad
+    function isVerified(handle) {
+        return handle && handle.toLowerCase() === 'qwklad';
+    }
+
+    function getBadgeHTML(handle) {
+        return isVerified(handle) ? '<span class="verified-badge" title="Подтверждённый аккаунт">✔</span>' : '';
+    }
+
+    function getAvatarHTML(userObj, small = false) {
+        const cls = small ? 'avatar small' : 'avatar';
+        if (userObj && userObj.avatar) {
+            return `<img src="${userObj.avatar}" class="${cls}">`;
+        }
+        const letter = (userObj && userObj.name ? userObj.name : 'G').toUpperCase();
+        return `<div class="${cls}">${letter}</div>`;
+    }
+
+    // Навигация
+    function switchTab(tab) {
+        activeTab = tab;
+        viewingProfile = null;
+        document.getElementById('settingsBox').style.display = 'none';
+        document.getElementById('profileBox').style.display = 'none';
+        document.getElementById('mainTabs').style.display = 'flex';
+        
+        document.querySelectorAll('#mainTabs .tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+
+        document.getElementById('searchBox').style.display = tab === 'search' ? 'flex' : 'none';
+        document.getElementById('postCreator').style.display = tab === 'search' ? 'none' : 'flex';
+        document.getElementById('feed').style.display = tab === 'search' ? 'none' : 'block';
+
+        if (tab === 'search') renderSearch();
+        else renderFeed();
+    }
+
+    function renderCurrentView() {
+        if (viewingProfile) openProfile(viewingProfile);
+        else if (activeTab === 'search') renderSearch();
+        else renderFeed();
+    }
+
+    // Поиск людей
+    function renderSearch() {
+        const q = document.getElementById('searchInput').value.trim().toLowerCase();
+        const resBox = document.getElementById('searchResults');
+        const filtered = allUsers.filter(u => u.handle.includes(q) || u.name.toLowerCase().includes(q));
+        
+        if (!filtered.length) {
+            resBox.innerHTML = '<div class="loader">Пользователи не найдены</div>';
+            return;
+        }
+
+        resBox.innerHTML = filtered.map(u => {
+            const isMe = u.handle === currentUser.handle;
+            const amFollowing = (currentUser.following || []).includes(u.handle);
+            return `
+                <div class="user-row">
+                    <div class="user-row-left" onclick="openProfile('${u.handle}')">
+                        ${getAvatarHTML(u, true)}
+                        <div>
+                            <div style="font-weight:700;">${escapeHTML(u.name)} ${getBadgeHTML(u.handle)}</div>
+                            <div style="color:var(--muted); font-size:13px;">@${escapeHTML(u.handle)}</div>
+                        </div>
+                    </div>
+                    ${!isMe ? `<button class="${amFollowing ? 'outline' : ''} small" onclick="toggleFollow('${u.handle}')">${amFollowing ? 'Вы подписаны' : 'Подписаться'}</button>` : ''}
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Подписки
+    async function toggleFollow(targetHandle) {
+        let following = [...(currentUser.following || [])];
+        if (following.includes(targetHandle)) {
+            following = following.filter(h => h !== targetHandle);
+        } else {
+            following.push(targetHandle);
+        }
+        currentUser.following = following;
+        localStorage.setItem('gubka_user', JSON.stringify(currentUser));
+        
+        const meInAll = allUsers.find(u => u.handle === currentUser.handle);
+        if (meInAll) meInAll.following = following;
+
+        renderCurrentView();
+        await sb.from('users').update({ following }).eq('handle', currentUser.handle);
+    }
+
+    // Профиль
+    function openProfile(handle) {
+        viewingProfile = handle;
+        document.getElementById('settingsBox').style.display = 'none';
+        document.getElementById('searchBox').style.display = 'none';
+        document.getElementById('mainTabs').style.display = 'none';
+        document.getElementById('profileBox').style.display = 'block';
+        document.getElementById('feed').style.display = 'block';
+        document.getElementById('postCreator').style.display = handle === currentUser.handle ? 'flex' : 'none';
+
+        const user = allUsers.find(u => u.handle === handle) || { handle, name: handle, bio: '', following: [] };
+        document.getElementById('profAvatarWrap').innerHTML = getAvatarHTML(user);
+        document.getElementById('profName').innerHTML = `${escapeHTML(user.name)} ${getBadgeHTML(user.handle)}`;
+        document.getElementById('profHandle').innerText = '@' + user.handle;
+        document.getElementById('profBio').innerText = user.bio || 'Нет описания';
+
+        const followingList = user.following || [];
+        const followersList = allUsers.filter(u => (u.following || []).includes(handle));
+        document.getElementById('profFollowingCount').innerText = followingList.length;
+        document.getElementById('profFollowersCount').innerText = followersList.length;
+
+        const actionWrap = document.getElementById('profActionBtn');
+        if (handle === currentUser.handle) {
+            actionWrap.innerHTML = `<button class="outline small" onclick="switchTab('all')">← Назад</button>`;
+        } else {
+            const amFollowing = (currentUser.following || []).includes(handle);
+            actionWrap.innerHTML = `
+                <div style="display:flex; gap:6px;">
+                    <button class="${amFollowing ? 'outline' : ''} small" onclick="toggleFollow('${handle}')">${amFollowing ? 'Вы подписаны' : 'Подписаться'}</button>
+                    <button class="outline small" onclick="switchTab('all')">✕</button>
+                </div>
+            `;
+        }
+        renderFeed();
+    }
+
+    function switchProfileTab(ptab) {
+        profileSubTab = ptab;
+        document.getElementById('ptab-posts').classList.toggle('active', ptab === 'posts');
+        document.getElementById('ptab-reposts').classList.toggle('active', ptab === 'reposts');
+        renderFeed();
+    }
+
+    function openFollowList(type) {
+        if (!viewingProfile) return;
+        const user = allUsers.find(u => u.handle === viewingProfile);
+        let list = [];
+        if (type === 'following') {
+            document.getElementById('modalTitle').innerText = 'Читаемые';
+            list = (user.following || []).map(h => allUsers.find(u => u.handle === h)).filter(Boolean);
+        } else {
+            document.getElementById('modalTitle').innerText = 'Подписчики';
+            list = allUsers.filter(u => (u.following || []).includes(viewingProfile));
+        }
+
+        const body = document.getElementById('modalBody');
+        body.innerHTML = list.length ? list.map(u => `
+            <div class="user-row" onclick="document.getElementById('listModal').style.display='none'; openProfile('${u.handle}')">
+                <div class="user-row-left">
+                    ${getAvatarHTML(u, true)}
+                    <div>
+                        <div style="font-weight:700;">${escapeHTML(u.name)} ${getBadgeHTML(u.handle)}</div>
+                        <div style="color:var(--muted); font-size:13px;">@${escapeHTML(u.handle)}</div>
+                    </div>
+                </div>
+            </div>
+        `).join('') : '<div class="loader">Список пуст</div>';
+
+        document.getElementById('listModal').style.display = 'flex';
+    }
+
+    // Работа с фото и видео (до 15 секунд)
+    function handleImageSelect(event) {
+        const file = event.target.files;
+        if (!file) return;
+        clearMedia();
+
         const reader = new FileReader();
         reader.onload = function(e) {
             const img = new Image();
             img.onload = function() {
                 const canvas = document.createElement('canvas');
-                let w = img.width;
-                let h = img.height;
-                if (w > maxWidth) {
-                    h = Math.round((h * maxWidth) / w);
-                    w = maxWidth;
-                }
-                canvas.width = w;
-                canvas.height = h;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, w, h);
-                callback(canvas.toDataURL('image/jpeg', 0.7));
+                const maxW = 800;
+                const scale = img.width > maxW ? maxW / img.width : 1;
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                selectedImg = canvas.toDataURL('image/jpeg', 0.75);
+                
+                document.getElementById('imgPreview').src = selectedImg;
+                document.getElementById('imgPreview').style.display = 'block';
+                document.getElementById('mediaPreviewWrap').style.display = 'block';
             };
             img.src = e.target.result;
         };
         reader.readAsDataURL(file);
     }
 
-    function applyAppearance() {
-        const themeSel = document.getElementById('setTheme');
-        const fontSel = document.getElementById('setFontSize');
-        if (themeSel && document.getElementById('settingsModal').style.display === 'flex') {
-            settings.theme = themeSel.value;
-            settings.fontScale = fontSel.value;
-        }
-        document.documentElement.setAttribute('data-theme', settings.theme);
-        document.documentElement.style.setProperty('--accent', settings.accent);
-        document.documentElement.style.setProperty('--font-scale', settings.fontScale);
-        localStorage.setItem('gubka_settings', JSON.stringify(settings));
-    }
-
-    function setAccent(color) {
-        settings.accent = color;
-        applyAppearance();
-    }
-
-    function toggleAuthMode() {
-        isRegisterMode = !isRegisterMode;
-        document.getElementById('errorMsg').style.display = 'none';
-        document.getElementById('authSubtitle').innerText = isRegisterMode ? 'Создайте аккаунт (только буквы, без пробелов)' : 'Войдите, чтобы читать и публиковать';
-        document.getElementById('nameInput').style.display = isRegisterMode ? 'block' : 'none';
-        document.getElementById('authSubmitBtn').innerText = isRegisterMode ? 'Зарегистрироваться' : 'Войти';
-        document.getElementById('authSwitchText').innerHTML = isRegisterMode
-            ? 'Уже есть аккаунт? <span onclick="toggleAuthMode()">Войти</span>'
-            : 'Нет аккаунта? <span onclick="toggleAuthMode()">Зарегистрироваться</span>';
-    }
-
-    function showError(msg) {
-        const err = document.getElementById('errorMsg');
-        err.innerText = msg;
-        err.style.display = 'block';
-    }
-
-    async function handleAuth() {
-        const name = document.getElementById('nameInput').value.replace(/[^a-zA-Zа-яА-ЯёЁ]/g, '');
-        const handle = document.getElementById('handleInput').value.replace(/[^a-zA-Zа-яА-ЯёЁ]/g, '').toLowerCase();
-        const pass = document.getElementById('passInput').value.trim();
-
-        if (!handle || !pass || (isRegisterMode && !name)) {
-            return showError('Заполните все поля (в имени и юзернейме разрешены только буквы).');
-        }
-
-        const btn = document.getElementById('authSubmitBtn');
-        btn.disabled = true;
-        btn.innerText = 'Загрузка...';
-
-        if (isRegisterMode) {
-            const { data, error } = await sb.rpc('register_user', {
-                p_handle: handle,
-                p_name: name,
-                p_pass: pass
-            });
-            btn.disabled = false;
-            btn.innerText = 'Зарегистрироваться';
-
-            if (error || (data && data.error)) {
-                return showError((data && data.error) || 'Ошибка регистрации.');
-            }
-            currentUser = data;
-        } else {
-            const { data, error } = await sb.rpc('login_user', {
-                p_handle: handle,
-                p_pass: pass
-            });
-            btn.disabled = false;
-            btn.innerText = 'Войти';
-
-            if (error || (data && data.error)) {
-                return showError((data && data.error) || 'Неверный юзернейм или пароль.');
-            }
-            currentUser = data;
-        }
-
-        localStorage.setItem('gubka_session', JSON.stringify(currentUser));
-        document.getElementById('passInput').value = '';
-        await syncData();
-        initApp();
-    }
-
-    function logout() {
-        currentUser = null;
-        viewingHandle = null;
-        localStorage.removeItem('gubka_session');
-        document.getElementById('settingsModal').style.display = 'none';
-        initApp();
-    }
-
-    async function syncData() {
-        const { data: uList } = await sb.from('users').select('*');
-        if (uList) {
-            usersMap = {};
-            uList.forEach(u => {
-                usersMap[u.handle] = u;
-                if (currentUser && u.handle === currentUser.handle) {
-                    currentUser = u;
-                    localStorage.setItem('gubka_session', JSON.stringify(currentUser));
-                }
-            });
-        }
-        await loadPosts();
-    }
-
-    async function loadPosts() {
-        const { data: pList } = await sb.from('posts').select('*').order('id', { ascending: false }).limit(100);
-        if (pList) {
-            posts = pList;
-            renderFeed();
-        }
-    }
-
-    function renderAvatar(user, isLarge = false) {
-        const cls = isLarge ? 'avatar large' : 'avatar';
-        if (user && user.avatar) {
-            return `<img src="${user.avatar}" class="${cls}">`;
-        }
-        const letter = user && user.name ? user.name[0].toUpperCase() : '?';
-        return `<div class="${cls}">${letter}</div>`;
-    }
-
-    function toggleSettings() {
-        const modal = document.getElementById('settingsModal');
-        const isOpen = modal.style.display === 'flex';
-        modal.style.display = isOpen ? 'none' : 'flex';
-        if (!isOpen && currentUser) {
-            document.getElementById('setName').value = currentUser.name;
-            document.getElementById('setBio').value = currentUser.bio || '';
-            document.getElementById('setVerified').checked = !!currentUser.verified;
-            document.getElementById('setTheme').value = settings.theme;
-            document.getElementById('setFontSize').value = settings.fontScale;
-        }
-    }
-
-    async function saveProfileSettings() {
-        const newName = document.getElementById('setName').value.replace(/[^a-zA-Zа-яА-ЯёЁ]/g, '');
-        const newBio = document.getElementById('setBio').value.trim().slice(0, 120);
-        const isVer = document.getElementById('setVerified').checked;
-        if (!newName) return alert('Имя должно содержать хотя бы одну букву.');
-
-        await sb.from('users').update({ name: newName, bio: newBio, verified: isVer }).eq('handle', currentUser.handle);
-        await sb.from('posts').update({ name: newName }).eq('handle', currentUser.handle);
-
-        currentUser.name = newName;
-        currentUser.bio = newBio;
-        currentUser.verified = isVer;
-        localStorage.setItem('gubka_session', JSON.stringify(currentUser));
-
-        document.getElementById('settingsModal').style.display = 'none';
-        await syncData();
-        initApp();
-    }
-
-    function uploadAvatar(event) {
-        const file = event.target.files[0];
+    function handleVideoSelect(event) {
+        const file = event.target.files;
         if (!file) return;
-        compressImage(file, 200, async (base64) => {
-            await sb.from('users').update({ avatar: base64 }).eq('handle', currentUser.handle);
-            currentUser.avatar = base64;
-            localStorage.setItem('gubka_session', JSON.stringify(currentUser));
-            await syncData();
-            initApp();
-        });
-    }
+        clearMedia();
 
-    async function changePassword() {
-        const oldP = document.getElementById('oldPassInput').value.trim();
-        const newP = document.getElementById('newPassInput').value.trim();
-        if (!oldP || !newP) return alert('Введите старый и новый пароль.');
-
-        const { data, error } = await sb.rpc('change_pass', {
-            p_handle: currentUser.handle,
-            p_old_pass: oldP,
-            p_new_pass: newP
-        });
-
-        if (error || (data && data.error)) {
-            return alert((data && data.error) || 'Ошибка смены пароля.');
+        if (file.size > 6 * 1024 * 1024) {
+            alert('Видео слишком тяжёлое! Выберите ролик размером до 6 МБ.');
+            event.target.value = '';
+            return;
         }
 
-        document.getElementById('oldPassInput').value = '';
-        document.getElementById('newPassInput').value = '';
-        alert('Пароль успешно изменён!');
+        const tempVideo = document.createElement('video');
+        tempVideo.preload = 'metadata';
+        tempVideo.onloadedmetadata = function() {
+            window.URL.revokeObjectURL(tempVideo.src);
+            if (tempVideo.duration > 15.5) {
+                alert('Длительность видео не должна превышать 15 секунд!');
+                event.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedVid = e.target.result;
+                const vidPrev = document.getElementById('vidPreview');
+                vidPrev.src = selectedVid;
+                vidPrev.style.display = 'block';
+                document.getElementById('mediaPreviewWrap').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        };
+        tempVideo.onerror = function() {
+            alert('Не удалось прочитать видеофайл.');
+            event.target.value = '';
+        };
+        tempVideo.src = URL.createObjectURL(file);
     }
 
-    function previewImage(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        compressImage(file, 800, (base64) => {
-            selectedImageBase64 = base64;
-            const prev = document.getElementById('imagePreview');
-            prev.src = selectedImageBase64;
-            prev.style.display = 'block';
-        });
+    function clearMedia() {
+        selectedImg = '';
+        selectedVid = '';
+        document.getElementById('imgInput').value = '';
+        document.getElementById('vidInput').value = '';
+        document.getElementById('imgPreview').style.display = 'none';
+        document.getElementById('vidPreview').style.display = 'none';
+        document.getElementById('mediaPreviewWrap').style.display = 'none';
     }
 
+    // Публикация поста
     async function createPost() {
-        const text = document.getElementById('postInput').value.trim().slice(0, 500);
-        if (!text && !selectedImageBase64) return;
+        const text = document.getElementById('postInput').value.trim();
+        if (!text && !selectedImg && !selectedVid) return;
 
         const btn = document.getElementById('publishBtn');
         btn.disabled = true;
+        btn.innerText = 'Отправка...';
 
         const now = new Date();
         const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
@@ -493,215 +668,273 @@
             handle: currentUser.handle,
             name: currentUser.name,
             text: text,
-            img: selectedImageBase64 || '',
+            img: selectedImg,
+            video: selectedVid,
             time: timeStr,
             likes: [],
             reposts: [],
             comments: []
         };
 
-        await sb.from('posts').insert(newPost);
+        const { error } = await sb.from('posts').insert([newPost]);
+        btn.disabled = false;
+        btn.innerText = 'Опубликовать';
+
+        if (error) {
+            alert('Ошибка при публикации (возможно, файл слишком большой).');
+            return;
+        }
 
         document.getElementById('postInput').value = '';
-        document.getElementById('imageInput').value = '';
-        document.getElementById('imagePreview').style.display = 'none';
-        selectedImageBase64 = null;
-        btn.disabled = false;
-        await loadPosts();
+        clearMedia();
+        await loadData();
     }
 
-    async function deletePost(id) {
-        await sb.from('posts').delete().eq('id', id);
-        await loadPosts();
+    async function togglePin(postId) {
+        const newPin = currentUser.pinned_post === postId ? null : postId;
+        currentUser.pinned_post = newPin;
+        localStorage.setItem('gubka_user', JSON.stringify(currentUser));
+        const me = allUsers.find(u => u.handle === currentUser.handle);
+        if (me) me.pinned_post = newPin;
+        renderFeed();
+        await sb.from('users').update({ pinned_post: newPin }).eq('handle', currentUser.handle);
     }
 
-    async function toggleLike(id) {
-        const post = posts.find(p => p.id === id);
+    async function deletePost(postId) {
+        if (!confirm('Удалить этот пост?')) return;
+        allPosts = allPosts.filter(p => p.id !== postId);
+        renderFeed();
+        await sb.from('posts').delete().eq('id', postId);
+    }
+
+    async function toggleLike(postId) {
+        const post = allPosts.find(p => p.id === postId);
         if (!post) return;
-        let likes = post.likes || [];
-        const idx = likes.indexOf(currentUser.handle);
-        if (idx === -1) likes.push(currentUser.handle);
-        else likes.splice(idx, 1);
-
-        await sb.from('posts').update({ likes }).eq('id', id);
-        await loadPosts();
+        let likes = [...(post.likes || [])];
+        if (likes.includes(currentUser.handle)) likes = likes.filter(h => h !== currentUser.handle);
+        else likes.push(currentUser.handle);
+        post.likes = likes;
+        renderFeed();
+        await sb.from('posts').update({ likes }).eq('id', postId);
     }
 
-    async function toggleRepost(id) {
-        const post = posts.find(p => p.id === id);
+    async function toggleRepost(postId) {
+        const post = allPosts.find(p => p.id === postId);
         if (!post) return;
-        let reposts = post.reposts || [];
-        const idx = reposts.indexOf(currentUser.handle);
-        if (idx === -1) reposts.push(currentUser.handle);
-        else reposts.splice(idx, 1);
-
-        await sb.from('posts').update({ reposts }).eq('id', id);
-        await loadPosts();
+        let reposts = [...(post.reposts || [])];
+        if (reposts.includes(currentUser.handle)) reposts = reposts.filter(h => h !== currentUser.handle);
+        else reposts.push(currentUser.handle);
+        post.reposts = reposts;
+        renderFeed();
+        await sb.from('posts').update({ reposts }).eq('id', postId);
     }
 
-    function toggleComments(id) {
-        const box = document.getElementById('comments-' + id);
+    function toggleComments(postId) {
+        const box = document.getElementById('comments-' + postId);
         box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
     }
 
-    async function addComment(id) {
-        const input = document.getElementById('comm-input-' + id);
-        const text = input.value.trim().slice(0, 250);
+    async function addComment(postId) {
+        const input = document.getElementById('comm-input-' + postId);
+        const text = input.value.trim();
         if (!text) return;
-
-        const post = posts.find(p => p.id === id);
-        if (!post) return;
-        let comments = post.comments || [];
-        comments.push({ author: currentUser.name, handle: currentUser.handle, text });
-
-        await sb.from('posts').update({ comments }).eq('id', id);
-        await loadPosts();
-        const box = document.getElementById('comments-' + id);
-        if (box) box.style.display = 'flex';
-    }
-
-    function openProfile(handle) {
-        viewingHandle = handle;
-        document.getElementById('settingsModal').style.display = 'none';
-        initApp();
-    }
-
-    function openHome() {
-        viewingHandle = null;
-        currentTab = 'all';
-        document.getElementById('settingsModal').style.display = 'none';
-        initApp();
-    }
-
-    function switchTab(tab) {
-        currentTab = tab;
-        document.getElementById('tabAll').classList.toggle('active', tab === 'all');
-        document.getElementById('tabReposts').classList.toggle('active', tab === 'reposts');
+        const post = allPosts.find(p => p.id === postId);
+        const comments = [...(post.comments || []), { handle: currentUser.handle, name: currentUser.name, text }];
+        post.comments = comments;
         renderFeed();
+        document.getElementById('comments-' + postId).style.display = 'flex';
+        await sb.from('posts').update({ comments }).eq('id', postId);
+    }
+
+    function renderFeed() {
+        const feed = document.getElementById('feed');
+        let list = [...allPosts];
+
+        if (viewingProfile) {
+            if (profileSubTab === 'posts') {
+                list = list.filter(p => p.handle === viewingProfile);
+                const profUser = allUsers.find(u => u.handle === viewingProfile);
+                if (profUser && profUser.pinned_post) {
+                    const pinIdx = list.findIndex(p => p.id === profUser.pinned_post);
+                    if (pinIdx > -1) {
+                        const [pinned] = list.splice(pinIdx, 1);
+                        pinned._isPinned = true;
+                        list.unshift(pinned);
+                    }
+                }
+            } else {
+                list = list.filter(p => (p.reposts || []).includes(viewingProfile));
+            }
+        } else if (activeTab === 'following') {
+            const following = currentUser.following || [];
+            list = list.filter(p => following.includes(p.handle) || p.handle === currentUser.handle);
+        }
+
+        if (!list.length) {
+            feed.innerHTML = '<div class="loader">Здесь пока нет постов</div>';
+            return;
+        }
+
+        feed.innerHTML = list.map(p => {
+            const authorObj = allUsers.find(u => u.handle === p.handle) || { handle: p.handle, name: p.name };
+            const isLiked = (p.likes || []).includes(currentUser.handle);
+            const isReposted = (p.reposts || []).includes(currentUser.handle);
+            const isMine = p.handle === currentUser.handle;
+
+            return `
+                <div class="post">
+                    <div onclick="openProfile('${p.handle}')" style="cursor:pointer;">${getAvatarHTML(authorObj, true)}</div>
+                    <div class="post-body">
+                        ${p._isPinned ? '<div class="pinned-label">📌 Закреплённый пост</div>' : ''}
+                        ${isReposted ? '<div class="repost-label">🔁 Вы репостнули</div>' : ''}
+                        <div class="post-header">
+                            <div class="post-author-info">
+                                <span class="post-name" onclick="openProfile('${p.handle}')">${escapeHTML(authorObj.name)}</span>
+                                ${getBadgeHTML(p.handle)}
+                                <span class="post-handle">@${escapeHTML(p.handle)} · ${p.time}</span>
+                            </div>
+                            ${isMine ? `
+                                <div class="post-menu">
+                                    <span onclick="togglePin(${p.id})" title="Закрепить">📌</span>
+                                    <span onclick="deletePost(${p.id})" title="Удалить">🗑</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        ${p.text ? `<div class="post-text">${escapeHTML(p.text)}</div>` : ''}
+                        ${p.img ? `<img src="${p.img}" class="post-media">` : ''}
+                        ${p.video ? `<video src="${p.video}" class="post-media" controls playsinline></video>` : ''}
+                        
+                        <div class="post-footer">
+                            <span class="action-btn" onclick="toggleComments(${p.id})">💬 ${(p.comments || []).length}</span>
+                            <span class="action-btn ${isReposted ? 'reposted' : ''}" onclick="toggleRepost(${p.id})">🔁 ${(p.reposts || []).length}</span>
+                            <span class="action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike(${p.id})">❤️ ${(p.likes || []).length}</span>
+                        </div>
+
+                        <div class="comments-section" id="comments-${p.id}">
+                            ${(p.comments || []).map(c => `
+                                <div class="comment-item">
+                                    <span class="comment-author" onclick="openProfile('${c.handle}')">${escapeHTML(c.name)} ${getBadgeHTML(c.handle)}:</span>${escapeHTML(c.text)}
+                                </div>
+                            `).join('')}
+                            <div class="comment-input-row">
+                                <input type="text" id="comm-input-${p.id}" maxlength="200" placeholder="Написать комментарий...">
+                                <button class="small" onclick="addComment(${p.id})">➤</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Настройки и оформление
+    function toggleSettings() {
+        const box = document.getElementById('settingsBox');
+        const isOpen = box.style.display === 'flex';
+        box.style.display = isOpen ? 'none' : 'flex';
+        if (!isOpen) {
+            document.getElementById('setNameInput').value = currentUser.name;
+            document.getElementById('setBioInput').value = currentUser.bio || '';
+        }
+    }
+
+    async function uploadAvatar(event) {
+        const file = event.target.files;
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = async function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = 150; canvas.height = 150;
+                canvas.getContext('2d').drawImage(img, 0, 0, 150, 150);
+                const avatarData = canvas.toDataURL('image/jpeg', 0.8);
+                currentUser.avatar = avatarData;
+                localStorage.setItem('gubka_user', JSON.stringify(currentUser));
+                await sb.from('users').update({ avatar: avatarData }).eq('handle', currentUser.handle);
+                await loadData();
+                alert('Аватарка обновлена!');
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    async function saveProfileSettings() {
+        const newName = document.getElementById('setNameInput').value.trim();
+        const newBio = document.getElementById('setBioInput').value.trim();
+        if (!newName) return alert('Имя не может быть пустым.');
+
+        currentUser.name = newName;
+        currentUser.bio = newBio;
+        localStorage.setItem('gubka_user', JSON.stringify(currentUser));
+        
+        await sb.from('users').update({ name: newName, bio: newBio }).eq('handle', currentUser.handle);
+        await sb.from('posts').update({ name: newName }).eq('handle', currentUser.handle);
+        await loadData();
+        toggleSettings();
+    }
+
+    async function changePassword() {
+        const oldPass = document.getElementById('oldPassInput').value.trim();
+        const newPass = document.getElementById('newPassInput').value.trim();
+        if (!oldPass || !newPass) return alert('Заполните оба поля пароля.');
+
+        const { data, error } = await sb.rpc('change_pass', { p_handle: currentUser.handle, p_old_pass: oldPass, p_new_pass: newPass });
+        if (error || (data && data.error)) {
+            return alert(data && data.error ? data.error : 'Ошибка при смене пароля');
+        }
+        document.getElementById('oldPassInput').value = '';
+        document.getElementById('newPassInput').value = '';
+        alert('Пароль успешно изменён!');
+    }
+
+    function setAccent(color, el) {
+        document.documentElement.style.setProperty('--accent', color);
+        document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+        if (el) el.classList.add('active');
+        localStorage.setItem('gubka_accent', color);
+    }
+
+    function applyAppearance() {
+        const theme = document.getElementById('themeSelect').value;
+        const font = document.getElementById('fontSelect').value;
+        const root = document.documentElement.style;
+
+        if (theme === 'light') {
+            root.setProperty('--bg', '#ffffff'); root.setProperty('--card', '#f7f9f9');
+            root.setProperty('--hover', '#eff3f4'); root.setProperty('--border', '#eff3f4');
+            root.setProperty('--text', '#0f1419'); root.setProperty('--muted', '#536471');
+        } else if (theme === 'dim') {
+            root.setProperty('--bg', '#15202b'); root.setProperty('--card', '#1e2732');
+            root.setProperty('--hover', '#22303c'); root.setProperty('--border', '#38444d');
+            root.setProperty('--text', '#f7f9f9'); root.setProperty('--muted', '#8b98a5');
+        } else {
+            root.setProperty('--bg', '#0f1419'); root.setProperty('--card', '#16181c');
+            root.setProperty('--hover', '#1d2228'); root.setProperty('--border', '#2f3336');
+            root.setProperty('--text', '#e7e9ea'); root.setProperty('--muted', '#71767b');
+        }
+
+        root.setProperty('--font-size', font);
+        localStorage.setItem('gubka_theme', theme);
+        localStorage.setItem('gubka_font', font);
+    }
+
+    function loadAppearance() {
+        const theme = localStorage.getItem('gubka_theme') || 'dark';
+        const font = localStorage.getItem('gubka_font') || '15px';
+        const accent = localStorage.getItem('gubka_accent') || '#f7b500';
+        document.getElementById('themeSelect').value = theme;
+        document.getElementById('fontSelect').value = font;
+        setAccent(accent);
+        applyAppearance();
     }
 
     function escapeHTML(str) {
         return str ? str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag])) : '';
     }
 
-    function renderFeed() {
-        const feed = document.getElementById('feed');
-        let list = posts;
-
-        if (viewingHandle) {
-            list = posts.filter(p => p.handle === viewingHandle || (p.reposts && p.reposts.includes(viewingHandle)));
-        } else if (currentTab === 'reposts') {
-            list = posts.filter(p => p.reposts && p.reposts.includes(currentUser.handle));
-        }
-
-        if (list.length === 0) {
-            feed.innerHTML = `<div style="padding: 30px; text-align: center; color: var(--muted);">Здесь пока пусто</div>`;
-            return;
-        }
-
-        feed.innerHTML = list.map(post => {
-            const authorUser = usersMap[post.handle] || { name: post.name, handle: post.handle };
-            const likes = post.likes || [];
-            const reposts = post.reposts || [];
-            const comments = post.comments || [];
-            const isLiked = likes.includes(currentUser.handle);
-            const isReposted = reposts.includes(currentUser.handle);
-            const showRepostBanner = (viewingHandle && post.handle !== viewingHandle && reposts.includes(viewingHandle)) || (currentTab === 'reposts' && isReposted);
-
-            return `
-            <div class="post">
-                <div onclick="openProfile('${post.handle}')" style="cursor:pointer;">${renderAvatar(authorUser)}</div>
-                <div class="post-main">
-                    ${showRepostBanner ? `<div class="repost-tag">🔁 Репост</div>` : ''}
-                    <div class="post-header">
-                        <div class="post-author">
-                            <span class="post-name" onclick="openProfile('${post.handle}')">${escapeHTML(authorUser.name)}</span>
-                            ${authorUser.verified ? '<span class="verified-badge">✔</span>' : ''}
-                            <span class="post-handle">@${escapeHTML(post.handle)}</span>
-                            <span class="post-time">· ${post.time}</span>
-                        </div>
-                        ${post.handle === currentUser.handle ? `<span class="del-btn" onclick="deletePost(${post.id})">🗑</span>` : ''}
-                    </div>
-                    <div class="post-text">${escapeHTML(post.text)}</div>
-                    ${post.img ? `<img src="${post.img}" class="post-img">` : ''}
-                    <div class="post-footer">
-                        <span class="action-btn" onclick="toggleComments(${post.id})">💬 ${comments.length}</span>
-                        <span class="action-btn ${isReposted ? 'reposted' : ''}" onclick="toggleRepost(${post.id})">🔁 ${reposts.length}</span>
-                        <span class="action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike(${post.id})">❤️ ${likes.length}</span>
-                    </div>
-                    <div class="comments-section" id="comments-${post.id}">
-                        ${comments.map(c => `<div class="comment-item"><span class="comment-author">${escapeHTML(c.author)}:</span>${escapeHTML(c.text)}</div>`).join('')}
-                        <div class="comment-input-row">
-                            <input type="text" id="comm-input-${post.id}" placeholder="Написать ответ..." maxlength="250">
-                            <button class="small" onclick="addComment(${post.id})">➤</button>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-        }).join('');
-    }
-
-    function initApp() {
-        applyAppearance();
-        const authScreen = document.getElementById('authScreen');
-        const mainApp = document.getElementById('mainApp');
-
-        if (!currentUser) {
-            authScreen.style.display = 'flex';
-            mainApp.style.display = 'none';
-            return;
-        }
-
-        authScreen.style.display = 'none';
-        mainApp.style.display = 'block';
-        document.getElementById('creatorAvatarWrap').innerHTML = renderAvatar(currentUser);
-
-        const profileBox = document.getElementById('profileBox');
-        const feedTabs = document.getElementById('feedTabs');
-        const postCreator = document.getElementById('postCreator');
-
-        if (viewingHandle) {
-            const pUser = usersMap[viewingHandle] || { name: viewingHandle, handle: viewingHandle, bio: '' };
-            profileBox.style.display = 'block';
-            feedTabs.style.display = 'none';
-            postCreator.style.display = viewingHandle === currentUser.handle ? 'flex' : 'none';
-
-            document.getElementById('profAvatarWrap').innerHTML = renderAvatar(pUser, true);
-            document.getElementById('profName').innerHTML = `${escapeHTML(pUser.name)} ${pUser.verified ? '<span class="verified-badge">✔</span>' : ''}`;
-            document.getElementById('profHandle').innerText = '@' + pUser.handle;
-            document.getElementById('profBio').innerText = pUser.bio || 'Нет описания';
-            document.getElementById('profPostsCount').innerText = posts.filter(p => p.handle === viewingHandle).length;
-            document.getElementById('profRepostsCount').innerText = posts.filter(p => p.reposts && p.reposts.includes(viewingHandle)).length;
-
-            const actionBtn = document.getElementById('profActionBtn');
-            if (viewingHandle === currentUser.handle) {
-                actionBtn.innerText = 'Настроить';
-                actionBtn.onclick = toggleSettings;
-            } else {
-                actionBtn.innerText = 'Назад';
-                actionBtn.onclick = openHome;
-            }
-        } else {
-            profileBox.style.display = 'none';
-            feedTabs.style.display = 'flex';
-            postCreator.style.display = 'flex';
-        }
-
-        renderFeed();
-    }
-
-    (async () => {
-        applyAppearance();
-        if (currentUser) {
-            await syncData();
-        }
-        initApp();
-        setInterval(() => {
-            if (currentUser && document.visibilityState === 'visible') {
-                loadPosts();
-            }
-        }, 15000);
-    })();
+    if (currentUser) initApp();
 </script>
 </body>
 </html>
