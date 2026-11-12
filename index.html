@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg: #000000;
+            --bg: #0f1419;
             --card: #16181c;
             --border: #2f3336;
             --text: #e7e9ea;
@@ -15,230 +15,217 @@
             --accent: #f7b500;
             --accent-hover: #d99f00;
             --danger: #f4212e;
-            --repost: #00ba7c;
-            --like: #f91880;
-            --base-size: 15px;
+            --font-scale: 1;
+        }
+        [data-theme="dim"] {
+            --bg: #15202b;
+            --card: #1e2732;
+            --border: #38444d;
+            --text: #f7f9f9;
+            --muted: #8b98a5;
+        }
+        [data-theme="light"] {
+            --bg: #ffffff;
+            --card: #f7f9f9;
+            --border: #eff3f4;
+            --text: #0f1419;
+            --muted: #536471;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; font-size: var(--base-size); transition: background 0.2s, color 0.2s; }
-        .container { width: 100%; max-width: 600px; border-left: 1px solid var(--border); border-right: 1px solid var(--border); min-height: 100vh; padding-bottom: 70px; display: none; }
+        body { background-color: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; font-size: calc(15px * var(--font-scale)); }
+        .container { width: 100%; max-width: 600px; border-left: 1px solid var(--border); border-right: 1px solid var(--border); min-height: 100vh; padding-bottom: 60px; display: none; }
         
         /* Полноэкранная авторизация */
-        .auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; overflow-y: auto; }
-        .auth-card { width: 100%; max-width: 400px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 30px 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
-        .auth-logo { font-size: 32px; font-weight: 900; color: var(--accent); text-align: center; margin-bottom: 8px; }
-        .auth-subtitle { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 24px; }
-        .auth-card h2 { font-size: 20px; margin-bottom: 16px; text-align: center; }
-        .auth-form { display: flex; flex-direction: column; gap: 12px; }
-        .auth-hint { font-size: 12px; color: var(--muted); margin-top: -6px; padding-left: 4px; }
-        .auth-switch { margin-top: 18px; font-size: 14px; color: var(--muted); text-align: center; }
-        .auth-switch span { color: var(--accent); cursor: pointer; font-weight: 700; }
+        .auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+        .auth-card { width: 100%; max-width: 400px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 28px 20px; display: flex; flex-direction: column; gap: 14px; }
+        .auth-logo { font-size: 32px; font-weight: 800; color: var(--accent); text-align: center; margin-bottom: 4px; }
+        .auth-subtitle { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 8px; }
+        .auth-switch { text-align: center; font-size: 14px; color: var(--muted); margin-top: 6px; }
+        .auth-switch span { color: var(--accent); cursor: pointer; font-weight: 600; }
+        .error-msg { color: var(--danger); font-size: 13px; text-align: center; display: none; }
 
         /* Шапка */
-        header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--bg); opacity: 0.96; backdrop-filter: blur(8px); z-index: 20; }
+        header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--bg); opacity: 0.95; backdrop-filter: blur(8px); z-index: 10; }
         .logo { font-size: 20px; font-weight: 800; color: var(--accent); cursor: pointer; display: flex; align-items: center; gap: 6px; }
         .nav-btns { display: flex; gap: 8px; align-items: center; }
-        
+
+        /* Вкладки ленты */
+        .tabs { display: flex; border-bottom: 1px solid var(--border); }
+        .tab { flex: 1; text-align: center; padding: 12px; font-weight: 700; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; }
+        .tab.active { color: var(--text); border-bottom-color: var(--accent); }
+
         /* Кнопки и поля */
-        button { background: var(--accent); color: #000; border: none; padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.15s; }
-        button:hover { opacity: 0.9; }
+        button { background: var(--accent); color: #000; border: none; padding: 9px 16px; border-radius: 20px; font-weight: 700; font-size: 14px; cursor: pointer; }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
         button.outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
-        button.danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
-        button.small { padding: 5px 12px; font-size: 13px; }
-        button.full { width: 100%; padding: 12px; font-size: 15px; margin-top: 4px; }
-        input[type="text"], input[type="password"], textarea, select { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 12px; border-radius: 12px; font-size: 15px; outline: none; }
+        button.danger { background: var(--danger); color: #fff; }
+        button.small { padding: 6px 12px; font-size: 13px; }
+        input, textarea, select { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 11px 12px; border-radius: 10px; font-size: 15px; outline: none; }
         input:focus, textarea:focus { border-color: var(--accent); }
-        .error-msg { color: var(--danger); font-size: 13px; display: none; background: rgba(244, 33, 46, 0.1); padding: 10px; border-radius: 10px; text-align: center; }
 
-        /* Вкладки */
-        .tabs { display: flex; border-bottom: 1px solid var(--border); }
-        .tab { flex: 1; text-align: center; padding: 12px; font-weight: 700; font-size: 14px; color: var(--muted); cursor: pointer; position: relative; }
-        .tab.active { color: var(--text); }
-        .tab.active::after { content: ''; position: absolute; bottom: 0; left: 25%; width: 50%; height: 3px; background: var(--accent); border-radius: 3px; }
+        /* Аватарки */
+        .avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--accent); color: #000; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; object-fit: cover; font-size: 18px; }
+        .avatar.large { width: 72px; height: 72px; font-size: 28px; }
+        .verified-badge { color: var(--accent); font-size: 14px; margin-left: 3px; }
 
         /* Профиль */
-        .profile-box { padding: 16px; border-bottom: 1px solid var(--border); display: none; }
+        .profile-box { padding: 16px; border-bottom: 1px solid var(--border); display: none; background: var(--card); }
         .profile-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-        .avatar { width: 64px; height: 64px; border-radius: 50%; background: var(--card); border: 2px solid var(--accent); object-fit: cover; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 24px; color: var(--accent); flex-shrink: 0; }
-        .avatar.small { width: 40px; height: 40px; font-size: 16px; border-width: 1px; }
         .profile-info { flex: 1; }
-        .profile-name { font-size: 19px; font-weight: 800; display: flex; align-items: center; gap: 4px; }
-        .verified-badge { color: var(--accent); font-size: 16px; }
+        .profile-name { font-size: 19px; font-weight: 800; display: flex; align-items: center; }
         .profile-handle { color: var(--muted); font-size: 14px; }
-        .profile-bio { margin-top: 10px; line-height: 1.4; }
-        .profile-stats { display: flex; gap: 15px; margin-top: 10px; font-size: 13px; color: var(--muted); }
+        .profile-bio { margin-top: 8px; line-height: 1.4; }
+        .profile-stats { display: flex; gap: 16px; margin-top: 10px; font-size: 13px; color: var(--muted); }
         .profile-stats b { color: var(--text); }
 
-        /* Настройки */
-        .settings-panel { padding: 16px; border-bottom: 1px solid var(--border); display: none; flex-direction: column; gap: 16px; background: var(--card); }
-        .settings-group { display: flex; flex-direction: column; gap: 8px; }
-        .settings-title { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
-        .theme-row, .color-row { display: flex; gap: 8px; flex-wrap: wrap; }
-        .color-dot { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
-        .color-dot.active { border-color: #fff; transform: scale(1.1); }
-        .checkbox-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
+        /* Панель настроек */
+        .settings-modal { display: none; padding: 16px; border-bottom: 1px solid var(--border); background: var(--card); flex-direction: column; gap: 14px; }
+        .settings-section { display: flex; flex-direction: column; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+        .settings-title { font-weight: 700; font-size: 14px; color: var(--muted); text-transform: uppercase; }
+        .color-row { display: flex; gap: 10px; }
+        .color-dot { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+        .color-dot.active { border-color: var(--text); transform: scale(1.1); }
+        .checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
+        .checkbox-row input { width: auto; }
 
         /* Создание поста */
         .post-creator { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; gap: 12px; }
-        .creator-right { flex: 1; display: flex; flex-direction: column; gap: 10px; }
-        .post-creator textarea { resize: none; height: 70px; border: none; padding: 4px 0; font-size: 16px; background: transparent; }
+        .creator-body { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        .creator-body textarea { resize: none; height: 75px; border: none; background: transparent; padding: 4px 0; font-size: calc(16px * var(--font-scale)); }
         .creator-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 10px; }
-        .file-label { color: var(--accent); font-size: 14px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .file-label { color: var(--accent); font-size: 14px; cursor: pointer; font-weight: 600; }
         #imagePreview { max-width: 100%; max-height: 220px; border-radius: 12px; display: none; object-fit: cover; }
 
-        /* Лента постов */
+        /* Посты */
         .post { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; gap: 12px; }
-        .post-body { flex: 1; min-width: 0; }
-        .repost-tag { font-size: 12px; color: var(--muted); font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
-        .post-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
-        .post-author-info { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+        .post-main { flex: 1; min-width: 0; }
+        .repost-tag { font-size: 12px; color: var(--muted); font-weight: 700; margin-bottom: 4px; }
+        .post-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .post-author { display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap; }
         .post-name { font-weight: 700; cursor: pointer; }
         .post-name:hover { text-decoration: underline; }
         .post-handle, .post-time { color: var(--muted); font-size: 13px; }
-        .delete-btn { color: var(--muted); cursor: pointer; font-size: 14px; padding: 2px 6px; }
-        .delete-btn:hover { color: var(--danger); }
+        .del-btn { color: var(--muted); cursor: pointer; font-size: 13px; }
+        .del-btn:hover { color: var(--danger); }
         .post-text { line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
         .post-img { max-width: 100%; border-radius: 12px; margin-top: 10px; border: 1px solid var(--border); }
-        
-        /* Действия под постом */
-        .post-footer { margin-top: 12px; display: flex; justify-content: space-between; max-width: 320px; color: var(--muted); font-size: 13px; }
-        .action-btn { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 5px; transition: 0.15s; }
-        .action-btn.liked { color: var(--like); font-weight: 700; }
-        .action-btn.reposted { color: var(--repost); font-weight: 700; }
-        
+        .post-footer { margin-top: 12px; display: flex; justify-content: space-between; max-width: 320px; color: var(--muted); font-size: 14px; }
+        .action-btn { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 5px; }
+        .action-btn.liked { color: #f91880; font-weight: 700; }
+        .action-btn.reposted { color: #00ba7c; font-weight: 700; }
+
         /* Комментарии */
         .comments-section { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); display: none; flex-direction: column; gap: 8px; }
         .comment-item { background: var(--card); padding: 8px 12px; border-radius: 10px; font-size: 13px; }
-        .comment-author { font-weight: 700; color: var(--accent); margin-right: 6px; cursor: pointer; }
+        .comment-author { font-weight: 700; color: var(--accent); margin-right: 6px; }
         .comment-input-row { display: flex; gap: 8px; margin-top: 4px; }
-        .comment-input-row input { padding: 8px 12px; font-size: 13px; }
-        
-        .loader { text-align: center; padding: 30px; color: var(--muted); font-size: 14px; }
+        .comment-input-row input { padding: 8px 10px; font-size: 13px; }
     </style>
 </head>
 <body>
 
-<!-- Полноэкранный блок входа / регистрации -->
+<!-- Полноэкранный блок входа и регистрации -->
 <div class="auth-screen" id="authScreen">
     <div class="auth-card">
         <div class="auth-logo">🧽 Gubka</div>
-        <div class="auth-subtitle">Общая лента в реальном времени</div>
-        <h2 id="authTitle">Вход в аккаунт</h2>
-        <div class="auth-form">
-            <div id="nameWrapper" style="display: none;">
-                <input type="text" id="nameInput" placeholder="Имя (только буквы)" oninput="sanitizeLetters(this)">
-                <div class="auth-hint">Только русские или английские буквы, без пробелов и смайликов</div>
-            </div>
-            <div>
-                <input type="text" id="handleInput" placeholder="Юзернейм (только буквы)" oninput="sanitizeLetters(this)">
-                <div class="auth-hint" id="handleHint" style="display: none;">Уникальный ник для всех пользователей</div>
-            </div>
-            <input type="password" id="passInput" placeholder="Пароль">
-            <div class="error-msg" id="errorMsg"></div>
-            <button class="full" id="authSubmitBtn">Войти</button>
-        </div>
+        <div class="auth-subtitle" id="authSubtitle">Войдите, чтобы читать и публиковать</div>
+        <input type="text" id="nameInput" placeholder="Имя (только буквы)" maxlength="25" style="display: none;" oninput="filterLettersOnly(this)">
+        <input type="text" id="handleInput" placeholder="Юзернейм (только буквы)" maxlength="20" oninput="filterLettersOnly(this)">
+        <input type="password" id="passInput" placeholder="Пароль" maxlength="50">
+        <div class="error-msg" id="errorMsg"></div>
+        <button id="authSubmitBtn" onclick="handleAuth()">Войти</button>
         <div class="auth-switch" id="authSwitchText">
-            Впервые в Gubka? <span onclick="toggleAuthMode()">Создать аккаунт</span>
+            Нет аккаунта? <span onclick="toggleAuthMode()">Зарегистрироваться</span>
         </div>
     </div>
 </div>
 
-<!-- Основной интерфейс -->
+<!-- Основной интерфейс соцсети -->
 <div class="container" id="mainApp">
     <header>
-        <div class="logo" onclick="showAllFeed()">🧽 Gubka</div>
-        <div class="nav-btns" id="headerNav"></div>
+        <div class="logo" onclick="openHome()">🧽 Gubka</div>
+        <div class="nav-btns">
+            <button class="outline small" onclick="loadPosts()" title="Обновить ленту">🔄</button>
+            <button class="outline small" onclick="openProfile(currentUser.handle)">Профиль</button>
+            <button class="outline small" onclick="toggleSettings()">⚙️</button>
+        </div>
     </header>
 
+    <!-- Настройки -->
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-section">
+            <div class="settings-title">Профиль</div>
+            <input type="text" id="setName" placeholder="Имя (только буквы)" maxlength="25" oninput="filterLettersOnly(this)">
+            <input type="text" id="setBio" placeholder="О себе (до 120 символов)" maxlength="120">
+            <label class="file-label">
+                🖼 Загрузить новую аватарку
+                <input type="file" accept="image/*" style="display: none;" onchange="uploadAvatar(event)">
+            </label>
+            <label class="checkbox-row">
+                <input type="checkbox" id="setVerified"> Галочка верификации
+            </label>
+            <button class="small" onclick="saveProfileSettings()">Сохранить профиль</button>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-title">Оформление</div>
+            <select id="setTheme" onchange="applyAppearance()">
+                <option value="dark">Тема: Тёмная</option>
+                <option value="dim">Тема: Сумерки</option>
+                <option value="light">Тема: Светлая</option>
+            </select>
+            <div class="color-row" id="colorPicker">
+                <div class="color-dot" style="background: #f7b500;" onclick="setAccent('#f7b500')"></div>
+                <div class="color-dot" style="background: #1d9bf0;" onclick="setAccent('#1d9bf0')"></div>
+                <div class="color-dot" style="background: #f91880;" onclick="setAccent('#f91880')"></div>
+                <div class="color-dot" style="background: #00ba7c;" onclick="setAccent('#00ba7c')"></div>
+                <div class="color-dot" style="background: #7856ff;" onclick="setAccent('#7856ff')"></div>
+            </div>
+            <select id="setFontSize" onchange="applyAppearance()">
+                <option value="0.9">Шрифт: Мелкий</option>
+                <option value="1" selected>Шрифт: Обычный</option>
+                <option value="1.15">Шрифт: Крупный</option>
+            </select>
+        </div>
+
+        <div class="settings-section" style="border-bottom: none;">
+            <div class="settings-title">Безопасность</div>
+            <input type="password" id="oldPassInput" placeholder="Текущий пароль" maxlength="50">
+            <input type="password" id="newPassInput" placeholder="Новый пароль" maxlength="50">
+            <button class="outline small" onclick="changePassword()">Обновить пароль</button>
+            <button class="danger small" style="margin-top: 8px;" onclick="logout()">Выйти из аккаунта</button>
+        </div>
+    </div>
+
+    <!-- Просмотр профиля -->
+    <div class="profile-box" id="profileBox">
+        <div class="profile-header">
+            <div id="profAvatarWrap"></div>
+            <div class="profile-info">
+                <div class="profile-name" id="profName"></div>
+                <div class="profile-handle" id="profHandle"></div>
+                <div class="profile-bio" id="profBio"></div>
+                <div class="profile-stats">
+                    <span><b id="profPostsCount">0</b> постов</span>
+                    <span><b id="profRepostsCount">0</b> репостов</span>
+                </div>
+            </div>
+            <button class="outline small" id="profActionBtn" onclick="toggleSettings()">Настроить</button>
+        </div>
+    </div>
+
+    <!-- Вкладки -->
     <div class="tabs" id="feedTabs">
         <div class="tab active" id="tabAll" onclick="switchTab('all')">Главная</div>
         <div class="tab" id="tabReposts" onclick="switchTab('reposts')">Репосты</div>
     </div>
 
-    <!-- Профиль -->
-    <div class="profile-box" id="profileBox">
-        <div class="profile-header">
-            <div id="profAvatarContainer"></div>
-            <div class="profile-info">
-                <div class="profile-name" id="profName"></div>
-                <div class="profile-handle" id="profHandle"></div>
-            </div>
-            <div id="profActions"></div>
-        </div>
-        <div class="profile-bio" id="profBio"></div>
-        <div class="profile-stats">
-            <span><b id="statPosts">0</b> постов</span>
-            <span><b id="statReposts">0</b> репостов</span>
-        </div>
-    </div>
-
-    <!-- Расширенные настройки -->
-    <div class="settings-panel" id="settingsPanel">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <strong style="font-size: 17px;">⚙️ Настройки профиля и сайта</strong>
-            <button class="outline small" onclick="toggleSettings()">Закрыть</button>
-        </div>
-
-        <div class="settings-group">
-            <div class="settings-title">Профиль</div>
-            <label class="file-label" style="background: var(--bg); padding: 10px; border-radius: 10px; border: 1px solid var(--border); justify-content: center;">
-                🖼 Загрузить новую аватарку
-                <input type="file" accept="image/*" style="display: none;" onchange="uploadAvatar(event)">
-            </label>
-            <input type="text" id="setName" placeholder="Отображаемое имя (только буквы)" oninput="sanitizeLetters(this)">
-            <input type="text" id="setBio" placeholder="О себе (статус)">
-            <div class="checkbox-row">
-                <span>Галочка верификации (✓)</span>
-                <input type="checkbox" id="setVerified" style="width: 20px; height: 20px;">
-            </div>
-            <button class="small" id="saveProfBtn" onclick="saveProfileSettings()">Сохранить профиль</button>
-        </div>
-
-        <div class="settings-group">
-            <div class="settings-title">Тема оформления</div>
-            <div class="theme-row">
-                <button class="outline small" onclick="applyTheme('dark')">Тёмная</button>
-                <button class="outline small" onclick="applyTheme('dim')">Сумерки</button>
-                <button class="outline small" onclick="applyTheme('light')">Светлая</button>
-            </div>
-        </div>
-
-        <div class="settings-group">
-            <div class="settings-title">Акцентный цвет</div>
-            <div class="color-row">
-                <div class="color-dot" style="background: #f7b500;" onclick="applyAccent('#f7b500')"></div>
-                <div class="color-dot" style="background: #1d9bf0;" onclick="applyAccent('#1d9bf0')"></div>
-                <div class="color-dot" style="background: #00ba7c;" onclick="applyAccent('#00ba7c')"></div>
-                <div class="color-dot" style="background: #f91880;" onclick="applyAccent('#f91880')"></div>
-                <div class="color-dot" style="background: #7856ff;" onclick="applyAccent('#7856ff')"></div>
-            </div>
-        </div>
-
-        <div class="settings-group">
-            <div class="settings-title">Размер шрифта</div>
-            <select id="setFontSize" onchange="applyFontSize(this.value)">
-                <option value="13px">Мелкий</option>
-                <option value="15px" selected>Стандартный</option>
-                <option value="17px">Крупный</option>
-            </select>
-        </div>
-
-        <div class="settings-group">
-            <div class="settings-title">Безопасность</div>
-            <input type="password" id="setNewPass" placeholder="Новый пароль">
-            <button class="outline small" onclick="changePassword()">Обновить пароль</button>
-        </div>
-
-        <button class="danger small" onclick="logout()">Выйти из аккаунта</button>
-    </div>
-
     <!-- Создание поста -->
     <div class="post-creator" id="postCreator">
-        <div id="creatorAvatar"></div>
-        <div class="creator-right">
-            <textarea id="postInput" placeholder="Что нового впитал сегодня?"></textarea>
-            <img id="imagePreview" alt="Предпросмотр">
+        <div id="creatorAvatarWrap"></div>
+        <div class="creator-body">
+            <textarea id="postInput" placeholder="Что нового впитал сегодня?" maxlength="500"></textarea>
+            <img id="imagePreview" alt="Фото">
             <div class="creator-footer">
                 <label class="file-label">
                     📷 Добавить фото
@@ -250,140 +237,26 @@
     </div>
 
     <!-- Лента -->
-    <div class="feed" id="feed"><div class="loader">Загрузка общей ленты...</div></div>
+    <div id="feed"></div>
 </div>
 
 <script>
     const SUPABASE_URL = 'https://rcxfbotfsgjndzjjqhls.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_B2BfD8ybX7GXxj1h1ISuTA_uJZh3Gj3';
-    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let isRegisterMode = false;
     let viewingHandle = null;
     let currentTab = 'all';
     let selectedImageBase64 = null;
 
+    let currentUser = JSON.parse(localStorage.getItem('gubka_session')) || null;
     let usersMap = {};
     let posts = [];
-    let currentUser = JSON.parse(localStorage.getItem('gubka_session_user')) || null;
-    let config = JSON.parse(localStorage.getItem('gubka_config')) || {
-        theme: 'dark', accent: '#f7b500', fontSize: '15px'
-    };
+    let settings = JSON.parse(localStorage.getItem('gubka_settings')) || { theme: 'dark', accent: '#f7b500', fontScale: '1' };
 
-    function sanitizeLetters(input) {
+    function filterLettersOnly(input) {
         input.value = input.value.replace(/[^a-zA-Zа-яА-ЯёЁ]/g, '');
-    }
-
-    function applyConfig() {
-        const root = document.documentElement;
-        if (config.theme === 'light') {
-            root.style.setProperty('--bg', '#ffffff');
-            root.style.setProperty('--card', '#f7f9f9');
-            root.style.setProperty('--border', '#eff3f4');
-            root.style.setProperty('--text', '#0f1419');
-        } else if (config.theme === 'dim') {
-            root.style.setProperty('--bg', '#15202b');
-            root.style.setProperty('--card', '#1e2732');
-            root.style.setProperty('--border', '#38444d');
-            root.style.setProperty('--text', '#f7f9f9');
-        } else {
-            root.style.setProperty('--bg', '#000000');
-            root.style.setProperty('--card', '#16181c');
-            root.style.setProperty('--border', '#2f3336');
-            root.style.setProperty('--text', '#e7e9ea');
-        }
-        root.style.setProperty('--accent', config.accent);
-        root.style.setProperty('--base-size', config.fontSize);
-        document.getElementById('setFontSize').value = config.fontSize;
-        localStorage.setItem('gubka_config', JSON.stringify(config));
-    }
-
-    function applyTheme(t) { config.theme = t; applyConfig(); }
-    function applyAccent(c) { config.accent = c; applyConfig(); }
-    function applyFontSize(s) { config.fontSize = s; applyConfig(); }
-
-    async function syncFromCloud() {
-        const { data: uData } = await db.from('users').select('*');
-        if (uData) {
-            usersMap = {};
-            uData.forEach(u => { usersMap[u.handle] = u; });
-            if (currentUser && usersMap[currentUser.handle]) {
-                currentUser = usersMap[currentUser.handle];
-                localStorage.setItem('gubka_session_user', JSON.stringify(currentUser));
-            }
-        }
-        const { data: pData } = await db.from('posts').select('*').order('id', { ascending: false });
-        if (pData) {
-            posts = pData;
-        }
-        updateUI();
-    }
-
-    function toggleAuthMode() {
-        isRegisterMode = !isRegisterMode;
-        document.getElementById('errorMsg').style.display = 'none';
-        document.getElementById('authTitle').innerText = isRegisterMode ? 'Регистрация в Gubka' : 'Вход в аккаунт';
-        document.getElementById('nameWrapper').style.display = isRegisterMode ? 'block' : 'none';
-        document.getElementById('handleHint').style.display = isRegisterMode ? 'block' : 'none';
-        document.getElementById('authSubmitBtn').innerText = isRegisterMode ? 'Зарегистрироваться' : 'Войти';
-        document.getElementById('authSwitchText').innerHTML = isRegisterMode 
-            ? 'Уже есть аккаунт? <span onclick="toggleAuthMode()">Войти</span>' 
-            : 'Впервые в Gubka? <span onclick="toggleAuthMode()">Создать аккаунт</span>';
-    }
-
-    function showError(text) {
-        const err = document.getElementById('errorMsg');
-        err.innerText = text;
-        err.style.display = 'block';
-    }
-
-    document.getElementById('authSubmitBtn').addEventListener('click', async () => {
-        const btn = document.getElementById('authSubmitBtn');
-        const nameRaw = document.getElementById('nameInput').value.replace(/[^a-zA-Zа-яА-ЯёЁ]/g, '');
-        const handleRaw = document.getElementById('handleInput').value.replace(/[^a-zA-Zа-яА-ЯёЁ]/g, '').toLowerCase();
-        const pass = document.getElementById('passInput').value.trim();
-
-        if (!handleRaw || !pass || (isRegisterMode && !nameRaw)) {
-            return showError('Заполни все поля! Имя и юзернейм должны содержать только буквы.');
-        }
-
-        btn.disabled = true;
-        btn.innerText = 'Проверка...';
-
-        if (isRegisterMode) {
-            const { data: existing } = await db.from('users').select('handle').eq('handle', handleRaw).maybeSingle();
-            if (existing) {
-                btn.disabled = false;
-                btn.innerText = 'Зарегистрироваться';
-                return showError('Этот юзернейм уже занят другим пользователем!');
-            }
-            const newUser = { name: nameRaw, handle: handleRaw, pass, bio: 'Впитываю новости в Gubka 🧽', avatar: '', verified: false };
-            const { error } = await db.from('users').insert([newUser]);
-            btn.disabled = false;
-            btn.innerText = 'Зарегистрироваться';
-            if (error) return showError('Ошибка сети при регистрации. Попробуй ещё раз.');
-            
-            currentUser = newUser;
-            localStorage.setItem('gubka_session_user', JSON.stringify(currentUser));
-            await syncFromCloud();
-        } else {
-            const { data: user } = await db.from('users').select('*').eq('handle', handleRaw).eq('pass', pass).maybeSingle();
-            btn.disabled = false;
-            btn.innerText = 'Войти';
-            if (!user) return showError('Неверный юзернейм или пароль.');
-            
-            currentUser = user;
-            localStorage.setItem('gubka_session_user', JSON.stringify(currentUser));
-            await syncFromCloud();
-        }
-    });
-
-    function logout() {
-        currentUser = null;
-        viewingHandle = null;
-        document.getElementById('settingsPanel').style.display = 'none';
-        localStorage.removeItem('gubka_session_user');
-        updateUI();
     }
 
     function compressImage(file, maxWidth, callback) {
@@ -402,17 +275,202 @@
                 canvas.height = h;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, w, h);
-                callback(canvas.toDataURL('image/jpeg', 0.75));
+                callback(canvas.toDataURL('image/jpeg', 0.7));
             };
             img.src = e.target.result;
         };
         reader.readAsDataURL(file);
     }
 
+    function applyAppearance() {
+        const themeSel = document.getElementById('setTheme');
+        const fontSel = document.getElementById('setFontSize');
+        if (themeSel && document.getElementById('settingsModal').style.display === 'flex') {
+            settings.theme = themeSel.value;
+            settings.fontScale = fontSel.value;
+        }
+        document.documentElement.setAttribute('data-theme', settings.theme);
+        document.documentElement.style.setProperty('--accent', settings.accent);
+        document.documentElement.style.setProperty('--font-scale', settings.fontScale);
+        localStorage.setItem('gubka_settings', JSON.stringify(settings));
+    }
+
+    function setAccent(color) {
+        settings.accent = color;
+        applyAppearance();
+    }
+
+    function toggleAuthMode() {
+        isRegisterMode = !isRegisterMode;
+        document.getElementById('errorMsg').style.display = 'none';
+        document.getElementById('authSubtitle').innerText = isRegisterMode ? 'Создайте аккаунт (только буквы, без пробелов)' : 'Войдите, чтобы читать и публиковать';
+        document.getElementById('nameInput').style.display = isRegisterMode ? 'block' : 'none';
+        document.getElementById('authSubmitBtn').innerText = isRegisterMode ? 'Зарегистрироваться' : 'Войти';
+        document.getElementById('authSwitchText').innerHTML = isRegisterMode
+            ? 'Уже есть аккаунт? <span onclick="toggleAuthMode()">Войти</span>'
+            : 'Нет аккаунта? <span onclick="toggleAuthMode()">Зарегистрироваться</span>';
+    }
+
+    function showError(msg) {
+        const err = document.getElementById('errorMsg');
+        err.innerText = msg;
+        err.style.display = 'block';
+    }
+
+    async function handleAuth() {
+        const name = document.getElementById('nameInput').value.replace(/[^a-zA-Zа-яА-ЯёЁ]/g, '');
+        const handle = document.getElementById('handleInput').value.replace(/[^a-zA-Zа-яА-ЯёЁ]/g, '').toLowerCase();
+        const pass = document.getElementById('passInput').value.trim();
+
+        if (!handle || !pass || (isRegisterMode && !name)) {
+            return showError('Заполните все поля (в имени и юзернейме разрешены только буквы).');
+        }
+
+        const btn = document.getElementById('authSubmitBtn');
+        btn.disabled = true;
+        btn.innerText = 'Загрузка...';
+
+        if (isRegisterMode) {
+            const { data, error } = await sb.rpc('register_user', {
+                p_handle: handle,
+                p_name: name,
+                p_pass: pass
+            });
+            btn.disabled = false;
+            btn.innerText = 'Зарегистрироваться';
+
+            if (error || (data && data.error)) {
+                return showError((data && data.error) || 'Ошибка регистрации.');
+            }
+            currentUser = data;
+        } else {
+            const { data, error } = await sb.rpc('login_user', {
+                p_handle: handle,
+                p_pass: pass
+            });
+            btn.disabled = false;
+            btn.innerText = 'Войти';
+
+            if (error || (data && data.error)) {
+                return showError((data && data.error) || 'Неверный юзернейм или пароль.');
+            }
+            currentUser = data;
+        }
+
+        localStorage.setItem('gubka_session', JSON.stringify(currentUser));
+        document.getElementById('passInput').value = '';
+        await syncData();
+        initApp();
+    }
+
+    function logout() {
+        currentUser = null;
+        viewingHandle = null;
+        localStorage.removeItem('gubka_session');
+        document.getElementById('settingsModal').style.display = 'none';
+        initApp();
+    }
+
+    async function syncData() {
+        const { data: uList } = await sb.from('users').select('*');
+        if (uList) {
+            usersMap = {};
+            uList.forEach(u => {
+                usersMap[u.handle] = u;
+                if (currentUser && u.handle === currentUser.handle) {
+                    currentUser = u;
+                    localStorage.setItem('gubka_session', JSON.stringify(currentUser));
+                }
+            });
+        }
+        await loadPosts();
+    }
+
+    async function loadPosts() {
+        const { data: pList } = await sb.from('posts').select('*').order('id', { ascending: false }).limit(100);
+        if (pList) {
+            posts = pList;
+            renderFeed();
+        }
+    }
+
+    function renderAvatar(user, isLarge = false) {
+        const cls = isLarge ? 'avatar large' : 'avatar';
+        if (user && user.avatar) {
+            return `<img src="${user.avatar}" class="${cls}">`;
+        }
+        const letter = user && user.name ? user.name[0].toUpperCase() : '?';
+        return `<div class="${cls}">${letter}</div>`;
+    }
+
+    function toggleSettings() {
+        const modal = document.getElementById('settingsModal');
+        const isOpen = modal.style.display === 'flex';
+        modal.style.display = isOpen ? 'none' : 'flex';
+        if (!isOpen && currentUser) {
+            document.getElementById('setName').value = currentUser.name;
+            document.getElementById('setBio').value = currentUser.bio || '';
+            document.getElementById('setVerified').checked = !!currentUser.verified;
+            document.getElementById('setTheme').value = settings.theme;
+            document.getElementById('setFontSize').value = settings.fontScale;
+        }
+    }
+
+    async function saveProfileSettings() {
+        const newName = document.getElementById('setName').value.replace(/[^a-zA-Zа-яА-ЯёЁ]/g, '');
+        const newBio = document.getElementById('setBio').value.trim().slice(0, 120);
+        const isVer = document.getElementById('setVerified').checked;
+        if (!newName) return alert('Имя должно содержать хотя бы одну букву.');
+
+        await sb.from('users').update({ name: newName, bio: newBio, verified: isVer }).eq('handle', currentUser.handle);
+        await sb.from('posts').update({ name: newName }).eq('handle', currentUser.handle);
+
+        currentUser.name = newName;
+        currentUser.bio = newBio;
+        currentUser.verified = isVer;
+        localStorage.setItem('gubka_session', JSON.stringify(currentUser));
+
+        document.getElementById('settingsModal').style.display = 'none';
+        await syncData();
+        initApp();
+    }
+
+    function uploadAvatar(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        compressImage(file, 200, async (base64) => {
+            await sb.from('users').update({ avatar: base64 }).eq('handle', currentUser.handle);
+            currentUser.avatar = base64;
+            localStorage.setItem('gubka_session', JSON.stringify(currentUser));
+            await syncData();
+            initApp();
+        });
+    }
+
+    async function changePassword() {
+        const oldP = document.getElementById('oldPassInput').value.trim();
+        const newP = document.getElementById('newPassInput').value.trim();
+        if (!oldP || !newP) return alert('Введите старый и новый пароль.');
+
+        const { data, error } = await sb.rpc('change_pass', {
+            p_handle: currentUser.handle,
+            p_old_pass: oldP,
+            p_new_pass: newP
+        });
+
+        if (error || (data && data.error)) {
+            return alert((data && data.error) || 'Ошибка смены пароля.');
+        }
+
+        document.getElementById('oldPassInput').value = '';
+        document.getElementById('newPassInput').value = '';
+        alert('Пароль успешно изменён!');
+    }
+
     function previewImage(event) {
         const file = event.target.files[0];
         if (!file) return;
-        compressImage(file, 700, (base64) => {
+        compressImage(file, 800, (base64) => {
             selectedImageBase64 = base64;
             const prev = document.getElementById('imagePreview');
             prev.src = selectedImageBase64;
@@ -421,21 +479,19 @@
     }
 
     async function createPost() {
-        if (!currentUser) return;
-        const text = document.getElementById('postInput').value.trim();
+        const text = document.getElementById('postInput').value.trim().slice(0, 500);
         if (!text && !selectedImageBase64) return;
 
         const btn = document.getElementById('publishBtn');
         btn.disabled = true;
-        btn.innerText = 'Отправка...';
 
         const now = new Date();
         const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
 
         const newPost = {
             id: Date.now(),
-            name: currentUser.name,
             handle: currentUser.handle,
+            name: currentUser.name,
             text: text,
             img: selectedImageBase64 || '',
             time: timeStr,
@@ -444,50 +500,43 @@
             comments: []
         };
 
-        await db.from('posts').insert([newPost]);
-        
+        await sb.from('posts').insert(newPost);
+
         document.getElementById('postInput').value = '';
         document.getElementById('imageInput').value = '';
         document.getElementById('imagePreview').style.display = 'none';
         selectedImageBase64 = null;
         btn.disabled = false;
-        btn.innerText = 'Опубликовать';
-        
-        await syncFromCloud();
+        await loadPosts();
     }
 
     async function deletePost(id) {
-        if (!confirm('Удалить этот пост для всех?')) return;
-        await db.from('posts').delete().eq('id', id);
-        await syncFromCloud();
+        await sb.from('posts').delete().eq('id', id);
+        await loadPosts();
     }
 
     async function toggleLike(id) {
-        if (!currentUser) return;
         const post = posts.find(p => p.id === id);
         if (!post) return;
         let likes = post.likes || [];
         const idx = likes.indexOf(currentUser.handle);
         if (idx === -1) likes.push(currentUser.handle);
         else likes.splice(idx, 1);
-        
-        post.likes = likes;
-        renderFeed();
-        await db.from('posts').update({ likes }).eq('id', id);
+
+        await sb.from('posts').update({ likes }).eq('id', id);
+        await loadPosts();
     }
 
     async function toggleRepost(id) {
-        if (!currentUser) return;
         const post = posts.find(p => p.id === id);
         if (!post) return;
         let reposts = post.reposts || [];
         const idx = reposts.indexOf(currentUser.handle);
         if (idx === -1) reposts.push(currentUser.handle);
         else reposts.splice(idx, 1);
-        
-        post.reposts = reposts;
-        renderFeed();
-        await db.from('posts').update({ reposts }).eq('id', id);
+
+        await sb.from('posts').update({ reposts }).eq('id', id);
+        await loadPosts();
     }
 
     function toggleComments(id) {
@@ -496,19 +545,32 @@
     }
 
     async function addComment(id) {
-        if (!currentUser) return;
         const input = document.getElementById('comm-input-' + id);
-        const text = input.value.trim();
+        const text = input.value.trim().slice(0, 250);
         if (!text) return;
 
         const post = posts.find(p => p.id === id);
+        if (!post) return;
         let comments = post.comments || [];
         comments.push({ author: currentUser.name, handle: currentUser.handle, text });
-        
-        post.comments = comments;
-        renderFeed();
-        document.getElementById('comments-' + id).style.display = 'flex';
-        await db.from('posts').update({ comments }).eq('id', id);
+
+        await sb.from('posts').update({ comments }).eq('id', id);
+        await loadPosts();
+        const box = document.getElementById('comments-' + id);
+        if (box) box.style.display = 'flex';
+    }
+
+    function openProfile(handle) {
+        viewingHandle = handle;
+        document.getElementById('settingsModal').style.display = 'none';
+        initApp();
+    }
+
+    function openHome() {
+        viewingHandle = null;
+        currentTab = 'all';
+        document.getElementById('settingsModal').style.display = 'none';
+        initApp();
     }
 
     function switchTab(tab) {
@@ -516,77 +578,6 @@
         document.getElementById('tabAll').classList.toggle('active', tab === 'all');
         document.getElementById('tabReposts').classList.toggle('active', tab === 'reposts');
         renderFeed();
-    }
-
-    function openProfile(handle) {
-        viewingHandle = handle;
-        document.getElementById('settingsPanel').style.display = 'none';
-        updateUI();
-    }
-
-    function showAllFeed() {
-        viewingHandle = null;
-        currentTab = 'all';
-        document.getElementById('settingsPanel').style.display = 'none';
-        updateUI();
-    }
-
-    function toggleSettings() {
-        const panel = document.getElementById('settingsPanel');
-        const isOpen = panel.style.display === 'flex';
-        panel.style.display = isOpen ? 'none' : 'flex';
-        if (!isOpen && currentUser) {
-            document.getElementById('setName').value = currentUser.name;
-            document.getElementById('setBio').value = currentUser.bio || '';
-            document.getElementById('setVerified').checked = !!currentUser.verified;
-        }
-    }
-
-    function uploadAvatar(event) {
-        const file = event.target.files[0];
-        if (!file || !currentUser) return;
-        compressImage(file, 200, async (base64) => {
-            currentUser.avatar = base64;
-            await db.from('users').update({ avatar: base64 }).eq('handle', currentUser.handle);
-            await syncFromCloud();
-            alert('Аватарка обновлена для всех!');
-        });
-    }
-
-    async function saveProfileSettings() {
-        if (!currentUser) return;
-        const newName = document.getElementById('setName').value.replace(/[^a-zA-Zа-яА-ЯёЁ]/g, '');
-        if (!newName) return alert('Имя должно содержать только буквы!');
-        
-        const btn = document.getElementById('saveProfBtn');
-        btn.disabled = true;
-        btn.innerText = 'Сохранение...';
-
-        const newBio = document.getElementById('setBio').value.trim();
-        const isVer = document.getElementById('setVerified').checked;
-
-        await db.from('users').update({ name: newName, bio: newBio, verified: isVer }).eq('handle', currentUser.handle);
-        await db.from('posts').update({ name: newName }).eq('handle', currentUser.handle);
-
-        btn.disabled = false;
-        btn.innerText = 'Сохранить профиль';
-        toggleSettings();
-        await syncFromCloud();
-    }
-
-    async function changePassword() {
-        const newPass = document.getElementById('setNewPass').value.trim();
-        if (!newPass) return alert('Введи новый пароль');
-        await db.from('users').update({ pass: newPass }).eq('handle', currentUser.handle);
-        document.getElementById('setNewPass').value = '';
-        alert('Пароль успешно изменён!');
-    }
-
-    function getAvatarHTML(userObj, isSmall = false) {
-        const cls = isSmall ? 'avatar small' : 'avatar';
-        if (userObj && userObj.avatar) return `<img src="${userObj.avatar}" class="${cls}">`;
-        const letter = userObj && userObj.name ? userObj.name[0].toUpperCase() : 'G';
-        return `<div class="${cls}">${letter}</div>`;
     }
 
     function escapeHTML(str) {
@@ -599,57 +590,49 @@
 
         if (viewingHandle) {
             list = posts.filter(p => p.handle === viewingHandle || (p.reposts && p.reposts.includes(viewingHandle)));
-        } else if (currentTab === 'reposts' && currentUser) {
+        } else if (currentTab === 'reposts') {
             list = posts.filter(p => p.reposts && p.reposts.includes(currentUser.handle));
         }
 
         if (list.length === 0) {
-            feed.innerHTML = `<div class="loader">Здесь пока пусто. Напиши первый пост!</div>`;
+            feed.innerHTML = `<div style="padding: 30px; text-align: center; color: var(--muted);">Здесь пока пусто</div>`;
             return;
         }
 
         feed.innerHTML = list.map(post => {
-            const authorObj = usersMap[post.handle] || { name: post.name, handle: post.handle };
-            const likesArr = post.likes || [];
-            const repostsArr = post.reposts || [];
-            const commentsArr = post.comments || [];
-            
-            const isLiked = currentUser && likesArr.includes(currentUser.handle);
-            const isReposted = currentUser && repostsArr.includes(currentUser.handle);
-            const canDelete = currentUser && post.handle === currentUser.handle;
-
-            let repostLabel = '';
-            if (viewingHandle && post.handle !== viewingHandle && repostsArr.includes(viewingHandle)) {
-                repostLabel = `<div class="repost-tag">🔁 Репостнул(а) @${escapeHTML(viewingHandle)}</div>`;
-            } else if (isReposted && !viewingHandle) {
-                repostLabel = `<div class="repost-tag">🔁 Вы репостнули</div>`;
-            }
+            const authorUser = usersMap[post.handle] || { name: post.name, handle: post.handle };
+            const likes = post.likes || [];
+            const reposts = post.reposts || [];
+            const comments = post.comments || [];
+            const isLiked = likes.includes(currentUser.handle);
+            const isReposted = reposts.includes(currentUser.handle);
+            const showRepostBanner = (viewingHandle && post.handle !== viewingHandle && reposts.includes(viewingHandle)) || (currentTab === 'reposts' && isReposted);
 
             return `
             <div class="post">
-                ${getAvatarHTML(authorObj, true)}
-                <div class="post-body">
-                    ${repostLabel}
+                <div onclick="openProfile('${post.handle}')" style="cursor:pointer;">${renderAvatar(authorUser)}</div>
+                <div class="post-main">
+                    ${showRepostBanner ? `<div class="repost-tag">🔁 Репост</div>` : ''}
                     <div class="post-header">
-                        <div class="post-author-info">
-                            <span class="post-name" onclick="openProfile('${post.handle}')">${escapeHTML(authorObj.name)}</span>
-                            ${authorObj.verified ? '<span class="verified-badge">✓</span>' : ''}
+                        <div class="post-author">
+                            <span class="post-name" onclick="openProfile('${post.handle}')">${escapeHTML(authorUser.name)}</span>
+                            ${authorUser.verified ? '<span class="verified-badge">✔</span>' : ''}
                             <span class="post-handle">@${escapeHTML(post.handle)}</span>
                             <span class="post-time">· ${post.time}</span>
                         </div>
-                        ${canDelete ? `<span class="delete-btn" onclick="deletePost(${post.id})">🗑</span>` : ''}
+                        ${post.handle === currentUser.handle ? `<span class="del-btn" onclick="deletePost(${post.id})">🗑</span>` : ''}
                     </div>
                     <div class="post-text">${escapeHTML(post.text)}</div>
                     ${post.img ? `<img src="${post.img}" class="post-img">` : ''}
                     <div class="post-footer">
-                        <span class="action-btn" onclick="toggleComments(${post.id})">💬 ${commentsArr.length}</span>
-                        <span class="action-btn ${isReposted ? 'reposted' : ''}" onclick="toggleRepost(${post.id})">🔁 ${repostsArr.length}</span>
-                        <span class="action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike(${post.id})">❤️ ${likesArr.length}</span>
+                        <span class="action-btn" onclick="toggleComments(${post.id})">💬 ${comments.length}</span>
+                        <span class="action-btn ${isReposted ? 'reposted' : ''}" onclick="toggleRepost(${post.id})">🔁 ${reposts.length}</span>
+                        <span class="action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike(${post.id})">❤️ ${likes.length}</span>
                     </div>
                     <div class="comments-section" id="comments-${post.id}">
-                        ${commentsArr.map(c => `<div class="comment-item"><span class="comment-author" onclick="openProfile('${c.handle}')">${escapeHTML(c.author)}:</span>${escapeHTML(c.text)}</div>`).join('')}
+                        ${comments.map(c => `<div class="comment-item"><span class="comment-author">${escapeHTML(c.author)}:</span>${escapeHTML(c.text)}</div>`).join('')}
                         <div class="comment-input-row">
-                            <input type="text" id="comm-input-${post.id}" placeholder="Ответить...">
+                            <input type="text" id="comm-input-${post.id}" placeholder="Написать ответ..." maxlength="250">
                             <button class="small" onclick="addComment(${post.id})">➤</button>
                         </div>
                     </div>
@@ -658,7 +641,8 @@
         }).join('');
     }
 
-    function updateUI() {
+    function initApp() {
+        applyAppearance();
         const authScreen = document.getElementById('authScreen');
         const mainApp = document.getElementById('mainApp');
 
@@ -670,53 +654,54 @@
 
         authScreen.style.display = 'none';
         mainApp.style.display = 'block';
+        document.getElementById('creatorAvatarWrap').innerHTML = renderAvatar(currentUser);
 
-        const postCreator = document.getElementById('postCreator');
-        const headerNav = document.getElementById('headerNav');
         const profileBox = document.getElementById('profileBox');
         const feedTabs = document.getElementById('feedTabs');
-
-        postCreator.style.display = (!viewingHandle && currentTab === 'all') ? 'flex' : 'none';
-        document.getElementById('creatorAvatar').innerHTML = getAvatarHTML(currentUser, true);
-        
-        headerNav.innerHTML = `
-            <button class="outline small" onclick="syncFromCloud()" title="Обновить ленту">🔄</button>
-            <button class="outline small" onclick="openProfile('${currentUser.handle}')">Профиль</button>
-            <button class="outline small" onclick="toggleSettings()">⚙️</button>
-        `;
+        const postCreator = document.getElementById('postCreator');
 
         if (viewingHandle) {
-            feedTabs.style.display = 'none';
-            const profUser = usersMap[viewingHandle] || { name: viewingHandle, handle: viewingHandle, bio: '' };
+            const pUser = usersMap[viewingHandle] || { name: viewingHandle, handle: viewingHandle, bio: '' };
             profileBox.style.display = 'block';
-            document.getElementById('profAvatarContainer').innerHTML = getAvatarHTML(profUser, false);
-            document.getElementById('profName').innerHTML = `${escapeHTML(profUser.name)} ${profUser.verified ? '<span class="verified-badge">✓</span>' : ''}`;
-            document.getElementById('profHandle').innerText = '@' + profUser.handle;
-            document.getElementById('profBio').innerText = profUser.bio || 'Нет описания';
-            
-            const userPostsCount = posts.filter(p => p.handle === viewingHandle).length;
-            const userRepostsCount = posts.filter(p => p.reposts && p.reposts.includes(viewingHandle)).length;
-            document.getElementById('statPosts').innerText = userPostsCount;
-            document.getElementById('statReposts').innerText = userRepostsCount;
+            feedTabs.style.display = 'none';
+            postCreator.style.display = viewingHandle === currentUser.handle ? 'flex' : 'none';
 
-            document.getElementById('profActions').innerHTML = (viewingHandle === currentUser.handle)
-                ? `<button class="outline small" onclick="toggleSettings()">Настроить</button> <button class="outline small" onclick="showAllFeed()">Назад</button>`
-                : `<button class="outline small" onclick="showAllFeed()">Назад</button>`;
+            document.getElementById('profAvatarWrap').innerHTML = renderAvatar(pUser, true);
+            document.getElementById('profName').innerHTML = `${escapeHTML(pUser.name)} ${pUser.verified ? '<span class="verified-badge">✔</span>' : ''}`;
+            document.getElementById('profHandle').innerText = '@' + pUser.handle;
+            document.getElementById('profBio').innerText = pUser.bio || 'Нет описания';
+            document.getElementById('profPostsCount').innerText = posts.filter(p => p.handle === viewingHandle).length;
+            document.getElementById('profRepostsCount').innerText = posts.filter(p => p.reposts && p.reposts.includes(viewingHandle)).length;
+
+            const actionBtn = document.getElementById('profActionBtn');
+            if (viewingHandle === currentUser.handle) {
+                actionBtn.innerText = 'Настроить';
+                actionBtn.onclick = toggleSettings;
+            } else {
+                actionBtn.innerText = 'Назад';
+                actionBtn.onclick = openHome;
+            }
         } else {
             profileBox.style.display = 'none';
             feedTabs.style.display = 'flex';
+            postCreator.style.display = 'flex';
         }
 
         renderFeed();
     }
 
-    // Автообновление ленты каждые 15 секунд
-    setInterval(() => {
-        if (currentUser) syncFromCloud();
-    }, 15000);
-
-    applyConfig();
-    syncFromCloud();
+    (async () => {
+        applyAppearance();
+        if (currentUser) {
+            await syncData();
+        }
+        initApp();
+        setInterval(() => {
+            if (currentUser && document.visibilityState === 'visible') {
+                loadPosts();
+            }
+        }, 15000);
+    })();
 </script>
 </body>
 </html>
